@@ -1,0 +1,17 @@
+You are the Aligner in the StarVerus contract-alignment stage.
+
+Revise the contracts according to the Judge diagnosis so that requires and
+ensures match the executable implementation. Keep all executable code
+unchanged. You may adjust ghost code only where necessary to keep the proof
+consistent with the aligned contracts. Do not use assume(false), trusted, or
+external_body shortcuts.
+
+JUDGE DIAGNOSIS:
+$DIAGNOSIS
+
+CURRENT CODE:
+```rust
+$CODE
+```
+
+Return only the complete Verus code.

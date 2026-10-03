@@ -2,7 +2,7 @@
 
 The data archive contains six directories. `evaluation/` holds final per-file
 records and indexes; `generated/` holds the 13,716 evaluated Rust sources;
-`references/` holds recovered exact evaluation references; `io/` holds validated
+`references/` holds 762 reference files; `io/` holds validated
 I/O suites; `generation/` holds baseline inputs, examples and retrieval mappings;
 `evidence/` holds proofs, annotation records, controlled variants, repair cases
 and frozen expected results.
@@ -60,14 +60,15 @@ The hash update follows dependencies, including structured RQ3 cache
 keys. Package checks validate each generated source and per-file record plus all
 files when `--all-files` is selected.
 
-Exact references were recovered only when matching the target catalog's hash.
-`references/availability.json` records 761 available references and the unavailable
-original `VeriCoding_VT0545_vericoded`. Its frozen measurements support statistical
-reproduction, but reevaluation against that exact original requires obtaining it.
+`references/availability.json` records 762 available reference files, one per task.
+The target catalog records the SHA-256 of each supplied reference, and the
+integrity check verifies all 762 files against those hashes.
 Generation examples differ from evaluation references for
-`HumanEval-Verus_task_36`, `MBPP-verified_task_47`, `VeriCoding_VT0545_vericoded`,
+`HumanEval-Verus_task_36`, `MBPP-verified_task_47`,
 `VerusBench_MBPP_task_id_476` and `VerusBench_MBPP_task_id_588`; examples are not
 silently substituted. The I/O supplement retains two filtered suites and six
 quarantined historical positive cases. The usable suite totals 11,641 cases;
 86 tasks have at least one category below the generation target. Recorded
 unresolved cases and missing categories remain represented in the released data.
+New evaluations use an offline I/O suite only when its stored source hash matches
+the selected reference; a mismatch makes that suite unavailable.

@@ -1,0 +1,25 @@
+Your task is to transform the given plain Rust code into a fully verified Verus program.
+
+Follow these precise steps:
+1. Specification
+   - For every function, add proper Verus specifications:
+     - `requires` clauses for preconditions.
+     - `ensures` clauses for postconditions.
+     - `decreases` clauses for recursive functions to ensure termination.
+   - Specifications must accurately describe the intended behavior of each function.
+2. Loop Invariants
+   - For every loop, add `invariant` clauses so that Verus can verify the correctness of the loop behavior.
+   - Add `decreases` clauses to prove that the loop terminates.
+3. Proof Construction
+   - Insert `proof` blocks, `assert` statements, or `proof fn`s as needed to help Verus prove the correctness of the program.
+   - You may introduce ghost variables or helper proof functions when necessary.
+   - Place proofs in logical locations in the code to ensure successful verification.
+
+Principles and Constraints:
+- Never modify or delete any existing executable code. You may only add ghost code, specifications, and proofs.
+- Anti-gaming: do not write vacuous, trivially true, or misaligned specs. Specs must characterize the intended behavior of each function in the given Rust code and rule out common incorrect implementations.
+- Do not use any unverifiable or deceptive constructs, including but not limited to: `assume(false)`, `#[verifier::external_body]`, `#[verifier::trusted]`, or any similar mechanisms.
+- Arithmetic safety: prove no overflow/underflow/division-by-zero purely via specs and proofs, or by tightening preconditions in `requires` (no changes to executable code).
+- Respond with the Rust code only, do not include any explanation.
+
+Given plain Rust code: 

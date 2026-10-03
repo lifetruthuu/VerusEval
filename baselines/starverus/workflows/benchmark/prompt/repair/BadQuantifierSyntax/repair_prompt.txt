@@ -1,0 +1,7 @@
+Your mission is to fix the `forall, choose, and exists do not allow parentheses` errors for the following verus code.
+These errors occur because the code uses parentheses around the variable declaration in a quantifier, like `forall(|x: int| expr)` or `exists(|k| expr)`, which is not allowed in Verus.
+Fix the code by:
+1. Identifying all occurrences of `forall`, `choose`, or `exists` that use parentheses around their variables.
+2. Removing the parentheses and converting to the correct syntax: `forall|<vars>| expr`, `choose|<vars>| expr`, or `exists|<vars>| expr`.
+3. Keep all other code unchanged, including executable code, function post-conditions, loop invariants, and comments.
+4. Preserve all existing closures in `ensures`, `invariant`, or other contexts; only change the quantifier syntax inside them.

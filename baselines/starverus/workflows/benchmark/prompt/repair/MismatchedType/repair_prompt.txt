@@ -1,0 +1,57 @@
+Your mission is to fix the `mismatched types` error for the following verus code. You will be given a verus code and correspond errors:
+A Verus code consists of executable code and ghost code:
+- Executable code: Normal Rust code that runs at runtime (function bodies, loops, variables, etc.).
+- Ghost code: used only for formal verification and does not execute at runtime, including:
+    - spec functions
+    - proof functions
+    - proof blocks
+    - preconditions (requires)
+    - postconditions (ensures)
+    - loop invariants (invariant)
+    - assertions (assert)
+Rules for fixing types:
+1.	Do not change logic. You may only convert data types to fix type errors.
+2.	Executable code: Keep all types (e.g., usize) as-is.
+3.	Ghost code: Convert usize indices to int using as int if required by the errors.
+4.	Only fix expressions, function calls, indices, or mathematical expressions mentioned in the errors. Do not modify unrelated code.
+5.	Ensure all arguments, vector accesses, and expressions match the expected types in Verus.
+Use the following reference as the canonical and correct format for Verus code:
+```rust
+use vstd::prelude::*;
+use vstd::seq::*;
+verus! {
+fn append_array(a: Vec<i32>, b: Vec<i32>) -> (c: Vec<i32>)
+    ensures
+        c@ == a@ + b@,
+{
+    let mut c: Vec<i32> = Vec::new();
+    let mut i: usize = 0;
+    while i < a.len()
+        invariant
+            0 <= i <= a.len(),
+            c@ == a@.take(i as int),
+        decreases a.len() - i,
+    {
+        c.push(a[i]);
+        i += 1;
+    }
+    
+    assert(forall|i: int| 0 <= i < a.len() ==> a[i] == c[i]);
+    
+    i = 0;
+    while i < b.len()
+        invariant
+            0 <= i <= b.len(),
+            c@ == a@ + b@.take(i as int),
+        decreases b.len() - i,
+    {
+        c.push(b[i]);
+        assert(c[(a.len() + i) as int] == b[i as int]);
+        i += 1;
+    }
+    
+    c
+}
+fn main() {}
+}
+```

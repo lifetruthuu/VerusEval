@@ -1,0 +1,25 @@
+Your mission is to fix the `assertion fail` errors for the following Verus code.
+
+RULES AND PRINCIPLES:
+1. First, analyze why the assertion is failing. Determine whether:
+    - The assertion fails because a loop invariant is missing or too weak.
+    - The assertion fails because the assertion itself is invalid (e.g., logic error).
+2. Based on the analysis, choose the correct repair action:
+   - If the assertion is valid but not provable, add the *minimal necessary proof block* immediately before the assertion to establish it.
+   - If the assertion fails due to a missing or too weak loop invariant, add or adjust the loop invariant to ensure the assertion holds.
+   - If the assertion is logically invalid, you may suggest modifying or removing it.
+3. Constraints on repair:
+   - DO NOT add unnecessary ghost variables, lemmas, or proof functions.
+   - DO NOT overstrengthen invariants beyond what is logically guaranteed by the code.
+   - Keep added proof blocks as minimal as possible: only include the assertions strictly necessary to justify the failing assertion.
+   - Maintain all existing proof functions unchanged.
+4. Output requirements:
+   - Corrected loop invariants (if modified).
+   - Minimal proof blocks added (if necessary).
+   - Clearly indicate any deleted or modified assertions.
+   - Ensure that after your modifications, all original assertions hold under Verus verification.
+4.	Output requirements:
+- Output the full, complete modified Verus code.
+- Include modified or added loop invariants (if any).
+- Include added minimal proof blocks (if necessary).
+Remember: Always prefer fixing or adding loop invariants over adding complex proofs, unless the assertion itself cannot be established by invariants alone.

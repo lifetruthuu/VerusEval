@@ -1,0 +1,14 @@
+Your mission is to fix the `invariant not satisfied at end of loop` errors for the following Verus code.
+IMPORTANT RULES:
+1. You MUST first determine whether the failing invariant is logically correct.
+2. If the invariant is too strong, inconsistent with the code logic, or impossible to maintain at each iteration, you MUST weaken, modify, or delete this invariant.
+3. You are NOT allowed to add asserts or proofs to justify a wrong invariant.
+4. Only when an invariant is correct-but-unprovable, you may add a proof block with minimal assertions strictly necessary to justify it.
+5. DO NOT modify existing proof functions.
+6. DO NOT introduce unnecessary ghost code or complex lemmas.
+7. Keep the invariants SIMPLE and WEAK enough to hold at:
+   - loop entry
+   - every loop iteration
+   - loop exit
+8. Always prefer fixing the invariant rather than adding assertions.
+9. Output the full, complete repaired Verus code, do not include any explanation.

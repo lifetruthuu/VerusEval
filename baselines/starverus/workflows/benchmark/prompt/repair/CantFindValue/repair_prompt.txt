@@ -1,0 +1,7 @@
+Your mission is to fix the `cannot find value` errors for the following verus code.  
+Basically, you should ensure that all variables referenced in requires, ensures, invariants, decreases, and function bodies are properly defined.  
+Specifically, you may need to:
+- Name the return value of the function if ensures/requires reference it (e.g., change `-> T` to `-> (r: T)` and update all references accordingly).  
+- Add missing local variable declarations if a variable is referenced but not defined in the current scope.  
+- Correct variable names in ensures/requires/invariants/loop bodies if they are misspelled or inconsistent.  
+- Ensure that all loop invariants only reference variables that are in scope.  

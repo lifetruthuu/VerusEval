@@ -1,0 +1,3 @@
+Your mission is to fix the `unexpected token, expected ;` errors for the following Verus code.
+These errors occur when `requires` or `ensures` clauses are incorrectly placed inside the function body.
+Fix the code by moving all `requires` and `ensures` clauses immediately after the function signature line and before the opening `{` of the function body.

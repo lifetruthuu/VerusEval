@@ -1,0 +1,3 @@
+Your mission is to fix the `unknown prover` errors in the following verus code.
+Basically, you should remove any unsupported prover in `assert ... by(...)` statements. 
+In most cases, replace `assert ... by(...)` with a plain `assert`. 

@@ -1,0 +1,37 @@
+Your mission is to fix the `expected curly braces` errors for the following verus code. 
+This error usually occurs when the structure of requires/ensures/invariant/decreases blocks is incorrect.  
+You must reformat these specification blocks to match the correct Verus syntax.
+For recursive functions, the decreases clause must appear below the requires and ensures clauses and cannot appear above them.
+For loops or non-recursive functions, decreases may appear after the invariant clause.
+Use the following reference as the canonical and correct format for Verus specification blocks:
+```rust
+use vstd::prelude::*;
+use vstd::seq::*;
+verus! {
+fn find_max(a: &[i32]) -> (i: usize)
+    requires
+        a.len() > 0,
+    ensures
+        0 <= i && i < a.len(),
+        forall|j: int| 0 <= j && j < a.len() ==> a[j] <= a[i as int],
+{
+    let mut i = 0;
+    let mut index = 1;
+
+    while index < a.len()
+        invariant
+            1 <= index && index <= a.len(),
+            0 <= i && i < index,
+            forall|j: int| 0 <= j && j < index ==> a[j] <= a[i as int],
+        decreases a.len() - index,
+    {
+        if a[index] > a[i] {
+            i = index;
+        }
+        index = index + 1;
+    }
+    i
+}
+fn main() {}
+}
+```

@@ -1,0 +1,29 @@
+Your mission is to fix the `Could not automatically infer triggers for this quantifier` errors for the following verus code.  
+These errors occur because the SMT solver cannot automatically determine a trigger for a complex `forall` or `exists` quantifier. 
+Fix the code by:
+1. Identifying the quantifier(s) causing the error.
+2. Adding `#[trigger(...)]` annotations inside the quantifier to specify one or more trigger expressions that appear in the quantifier body. 
+   - Choose expressions that are key to the quantifier, such as equalities or function calls.
+3. Alternatively, if adding a trigger is difficult, you may rewrite the quantifier into simpler expressions or split it into multiple quantifiers.
+4. Keep all executable code unchanged.
+
+An Example Tutorial:
+**❌ Before (Error):**
+```rust
+spec fn properties(x: int) -> bool;
+
+fn check_properties()
+    ensures
+        // Error: Could not automatically infer triggers for `x`
+        forall|x: int| properties(x) ==> x > 0 
+{ ... }
+```
+✅ After (Fixed):
+```verus
+fn check_properties()
+    ensures
+        // Fix: We select `properties(x)` as the trigger because it contains the bound variable `x`.
+        // The #[trigger] attribute is placed right before the expression.
+        forall|x: int| #[trigger] properties(x) ==> x > 0 
+{ ... }
+```

@@ -1,0 +1,10 @@
+Your mission is to fix the `incompatible types` errors for the following verus code.
+
+Basically, you should ensure that all expressions, `if`/`else` branches, vector accesses, and specification expressions have compatible types.  
+In Verus, this often occurs when mixing `int` (Verus mathematical integers) and Rust primitive types like `i32`, `usize`, or `bool` inside specifications (`ensures`, `requires`, `invariant`, `forall`, etc.) or in ghost code.
+
+Specifically, you may need to:
+- Cast values to the expected type using `as int` or `as i32` to make `if`/`else` branches compatible. For example, change `if x[i] < 0 { -x[i] } else { x[i] }` to `if x[i] < 0 { -x[i] as int } else { x[i] as int }` if `y[i]` is `int`.
+- Ensure all variables used in specifications (`forall`, `ensures`, `invariant`) have the correct type (`int` for Verus mathematical integers, `Seq` or `Vec` as appropriate).
+- Ensure that arithmetic expressions in specifications use consistent types.
+- Only add type casts or adjust variable types; do not change the logic or computation.

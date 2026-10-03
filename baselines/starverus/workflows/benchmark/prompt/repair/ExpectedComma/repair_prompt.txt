@@ -1,0 +1,9 @@
+Your mission is to fix the `expected ','` syntax errors for the following Verus code.
+These errors often occur when:
+- `forall` expressions are written incorrectly (e.g., using `--` instead of `|` to bind variables), 
+- `invariant`, `requires`, or `ensures` clauses have malformed expressions or separators.
+Fix the code by:
+1. Ensuring all `forall` expressions use the correct syntax: `forall |var: type| condition ==> property`.
+2. Making sure multiple invariants, requires, or ensures are properly separated by commas.
+3. Keeping all comments intact.
+4. Parentheses for as int / as nat: Because as has very low precedence in Verus, expressions like: `i as int < a.len()` can be parsed incorrectly. You must wrap all casted values in parentheses when they appear in larger expressions: `(i as int)`.

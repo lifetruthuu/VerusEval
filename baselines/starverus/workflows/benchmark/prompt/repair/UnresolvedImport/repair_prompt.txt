@@ -1,0 +1,11 @@
+Your mission is to fix the `unresolved import` errors in the following verus code.
+Specifically:
+- Remove or correct any invalid or unsupported `use` statements that cause unresolved import errors.
+- Only modify import lines. Do not modify any executable code, specifications, or proofs.
+Allowed imports:
+- In most cases, only the following import is needed:
+    use vstd::prelude::*;
+- When necessary, the following imports are also allowed:
+    use vstd::seq::*;
+    use vstd::set::*;
+    use vstd::map::*;

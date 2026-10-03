@@ -44,17 +44,26 @@ def verify_hash(path, expected):
     require(actual == expected, f'Hash mismatch: {path}')
 
 
+def validate_references(root, catalog):
+    paths = [row['reference_path'] for row in catalog]
+    require(len(set(paths)) == len(catalog), 'References are not one-to-one with tasks.')
+    for row in catalog:
+        require(row['reference_path'].startswith('data/references/'), 'Invalid reference directory.')
+        verify_hash(safe_path(root, row['reference_path']), row['reference_sha256'])
+    return len(paths)
+
+
 def validate(root=ROOT, all_files=False):
     data = root / 'data/evaluation'
     require((data / 'artifact_index.csv').is_file(),
             'Missing data: unpack veruseval-data.tar.gz at the repository root first.')
     manifest_path = root / 'artifact_manifest.json'
-    require(manifest_path.is_file(), 'Missing release manifest: unpack the matching data Release.')
+    require(manifest_path.is_file(), 'Missing release manifest: unpack the matching data archive.')
     manifest = json.loads(manifest_path.read_text())
     # Metadata is always verified before following its paths.
     metadata = {'data/evaluation/artifact_index.csv', 'data/evaluation/artifact_outcomes.csv',
                 'data/evaluation/rq1_artifact_outcomes.csv', 'data/evaluation/target_functions.csv',
-                'data/generated/manifest.csv'}
+                'data/generated/manifest.csv', 'data/references/availability.json'}
     checked = set()
     for entry in manifest['files']:
         if all_files or entry['path'] in metadata:
@@ -73,6 +82,10 @@ def validate(root=ROOT, all_files=False):
     require({r['sample_id'] for r in eligible} == {r['sample_id'] for r in index if r['analysis_eligible'] == 'True'}, 'Exclusion identity mismatch.')
     require(Counter(r['verification_stage'] for r in eligible)['accepted'] == 7081, 'Accepted population mismatch.')
     require(len(catalog) == len({r['task_id'] for r in catalog}) == 762, 'Target catalog mismatch.')
+    references_checked = validate_references(root, catalog)
+    availability = json.loads((root / 'data/references/availability.json').read_text())
+    require(availability == {'tasks': 762, 'available': 762, 'missing_reference': []},
+            'Reference availability metadata mismatch.')
     sources = {r['sample_id']: r for r in corpus}
     require(len(sources) == len(corpus) == len(index) and set(sources) == ids, 'Generated-source pairing mismatch.')
     configs = {(r['workflow'], r['model'], r['shot']) for r in corpus}
@@ -96,6 +109,7 @@ def validate(root=ROOT, all_files=False):
     return {'status': 'passed', 'artifacts': len(index), 'tasks': len(catalog), 'configurations': len(configs),
             'analysis_artifacts': len(eligible), 'excluded': len(index) - len(eligible),
             'generated_source_hashes_checked': len(corpus), 'per_file_hashes_checked': len(index),
+            'reference_hashes_checked': references_checked,
             'release_files_checked': len(checked)}
 
 

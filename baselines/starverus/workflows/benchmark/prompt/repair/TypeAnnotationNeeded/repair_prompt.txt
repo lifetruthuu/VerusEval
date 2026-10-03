@@ -1,0 +1,8 @@
+Your mission is to fix the `type annotations needed` errors for the following Verus code.
+Basically, you should ensure that all expressions, function calls, vector indexing, old() calls, and specifications have the correct and compatible types.
+Specifically, you may need to:
+- Add explicit type annotations to calls like `old(a@)` by specifying the generic parameter, e.g., `old::<A>(&mut a@)` if Verus cannot infer the type.
+- Convert `usize` indices to `int` when used in specifications (`forall`, `ensures`, `invariant`) if the API expects `int`.
+- Convert `int` to `usize` when accessing a `Vec` in executable code.
+- Borrow sequences or vectors mutably (`&mut a@`) when the function or method expects a mutable reference.
+- Ensure that all arguments to functions, old expressions, vector accesses, and mathematical expressions match the expected types.

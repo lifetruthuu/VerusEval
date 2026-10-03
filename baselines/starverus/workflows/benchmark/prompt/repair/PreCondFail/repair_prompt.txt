@@ -1,0 +1,3 @@
+Your mission is to fix the `precondition not satisfied` errors for the following verus code. 
+Basically, you should add the proof blocks related to the pre-condition check just before the invocation of the function. 
+Note, DO NOT change the proof function whose pre-condition is not satisfied. You can use the pre-conditions of the current function, invariants of the current loop, and the pre-conditions of the called functions to fix the error.

@@ -1,0 +1,4 @@
+Your mission is to fix the `post-condition not satisfied` errors for the following verus code. Check the correctness of the post-condition expression itself.
+- Add the proof blocks related to the post-condition at or just before the exit point where the post-condition failure occurred.
+- Modify the existing loop invariants to make them work for the post-condition.
+- If the function ends with a loop, make sure there is a loop invariant in that loop that reflects the post-condition.

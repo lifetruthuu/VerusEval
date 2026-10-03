@@ -8,12 +8,31 @@ import sys
 import tempfile
 import unittest
 
-from scripts.validate import compare_results, safe_path, validate, verify_hash
+from scripts.validate import compare_results, safe_path, validate, validate_references, verify_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_reference_catalog_requires_real_files_and_matching_hashes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            relative = 'data/references/Example/task.rs'
+            path = root / relative
+            path.parent.mkdir(parents=True)
+            raw = b'fn main() {}'
+            catalog = [{'reference_path': relative,
+                        'reference_sha256': hashlib.sha256(raw).hexdigest()}]
+            with self.assertRaisesRegex(ValueError, 'Missing data or code file'):
+                validate_references(root, catalog)
+            path.write_bytes(raw)
+            self.assertEqual(validate_references(root, catalog), 1)
+            with self.assertRaisesRegex(ValueError, 'one-to-one'):
+                validate_references(root, catalog + catalog)
+            path.write_bytes(b'changed reference')
+            with self.assertRaisesRegex(ValueError, 'Hash mismatch'):
+                validate_references(root, catalog)
+
     def test_missing_data_is_reported(self):
         with tempfile.TemporaryDirectory() as folder:
             with self.assertRaisesRegex(ValueError, 'Missing data'):

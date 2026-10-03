@@ -2,7 +2,7 @@
 
 Evaluate generated Verus specifications, reproduce four research questions,
 and run the included baseline adapters. The released corpus covers 13,716
-programs, 762 tasks and 18 configurations.
+programs, 762 tasks, 762 reference files and 18 configurations.
 
 [Browse the full metric images](gallery/README.md) ·
 [Download code and data](downloads/README.md) ·

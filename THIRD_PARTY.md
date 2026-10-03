@@ -8,8 +8,8 @@ notices are retained.
 ## Benchmarks and generated programs
 
 The task catalog identifies every benchmark, reference file, target function,
-and original SHA-256. Reference copies were recovered from the baseline dataset
-and registered evaluation evidence only when those hashes match. The collection
+and supplied file SHA-256. Reference copies come from the baseline dataset
+and registered evaluation evidence. The collection
 contains DAFNY2VERUS-COLLECTION, HumanEval-Verus, MBPP-verified, VeriCoding, and
 VerusBench tasks. Their original source and translation notices apply to the
 reference copies and to source material embedded in generated programs.
@@ -32,6 +32,12 @@ and the scope of the local adaptations. The upstream AlphaVerus snapshot did
 not contain a standalone license file. This release does not assign the root
 MIT license to that code. The Microsoft license is also retained at
 `baselines/verus-proof-synthesis/LICENSE`.
+
+The StarVerus single-file benchmark source and prompts come from
+https://github.com/Je5s1e/KDD26-ADS-StarVerus at commit
+`0c0ce03c7f68027085bdb70c82075510cf0a8f57`. The upstream benchmark subtree is
+included unchanged. Its MIT notice is retained in `baselines/starverus/LICENSE`;
+the artifact's separate launcher connects it to the published dataset.
 
 ## Figure renderer and fonts
 
