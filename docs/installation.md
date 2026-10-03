@@ -38,8 +38,9 @@ The R package versions and source archive hashes are fixed in
 `docker/r-packages.lock.json`, including their dependencies. RQ2 needs the pinned
 ggplot2 API; an older system ggplot2 is not sufficient.
 
-Download the code and data from the same Release, check `SHA256SUMS`, and extract
-`veruseval-data.tar.gz` into the checkout root. Data are needed for reproduction
+Use the [download helper](../downloads/README.md) to obtain the matching code
+and data archives, then extract both into the same empty directory. Run the
+commands below from that extracted snapshot. Data are needed for reproduction
 and gallery regeneration, but not for building the environment:
 
 ```bash

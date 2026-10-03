@@ -11,3 +11,5 @@ dist/
 checks/
 .release/
 target/
+/packages/
+/veruseval-release/
