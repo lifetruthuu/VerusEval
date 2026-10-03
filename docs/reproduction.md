@@ -6,11 +6,12 @@ tables without rendering figures. `--rscript` selects the R executable.
 In Docker, prefix this command with `docker compose run --rm veruseval`; all
 figure dependencies and Rscript are already installed.
 `--rq` accepts exactly `all`, `1`, `2`, `3`, and `4`; each selection is runnable
-from a fresh checkout with the matching data Release.
+from the [matching code and data archives](../downloads/README.md) extracted
+into the same directory.
 
 The entry validates every released file before starting, copies analysis code
 to the output workspace and reads the released data. The workspace links its
-`data/` directory to the extracted Release, so retain that data while inspecting
+`data/` directory to the extracted data, so retain that data while inspecting
 the workspace. The entry starts with no generated RQ outputs. RQ2 and RQ3 first
 build the RQ1 encodings they need. Statistical scripts use final merged records
 directly and do not reapply historical corrections.

@@ -29,9 +29,13 @@ docker compose run --rm veruseval python scripts/reproduce.py --rq all --output-
 ```
 
 Use the code and data archives together: their combined manifest verifies the
-exact frozen code and records. The repository's current browsing instructions
-can change independently of that snapshot.
+exact frozen code and records. The code archive includes this guide and the
+download helper. If both archives are already extracted, start with the Docker
+commands above.
 
 From a complete Git checkout, `python downloads/download.py` joins the local
-parts without network access or curl. [Manifest](manifest.json) and
-[archive checksums](SHA256SUMS).
+parts without network access or curl. From an extracted code archive, the same
+command downloads the parts from the anonymous mirror. The parts,
+[download manifest](https://anonymous.4open.science/api/repo/VerusEval-A7E4/file/downloads/manifest.json)
+and [archive checksums](https://anonymous.4open.science/api/repo/VerusEval-A7E4/file/downloads/SHA256SUMS)
+are hosted in the repository and are not embedded in the code archive.

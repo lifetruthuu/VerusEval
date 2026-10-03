@@ -1,6 +1,6 @@
 # Data and provenance
 
-The data Release contains six directories. `evaluation/` holds final per-file
+The data archive contains six directories. `evaluation/` holds final per-file
 records and indexes; `generated/` holds the 13,716 evaluated Rust sources;
 `references/` holds recovered exact evaluation references; `io/` holds validated
 I/O suites; `generation/` holds baseline inputs, examples and retrieval mappings;
