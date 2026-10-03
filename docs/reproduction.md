@@ -13,8 +13,7 @@ The entry validates every released file before starting, copies analysis code
 to the output workspace and reads the released data. The workspace links its
 `data/` directory to the extracted data, so retain that data while inspecting
 the workspace. The entry starts with no generated RQ outputs. RQ2 and RQ3 first
-build the RQ1 encodings they need. Statistical scripts use final merged records
-directly and do not reapply historical corrections.
+build the RQ1 encodings they need. Statistical scripts read the final records.
 
 RQ1 produces acceptance/quality associations, task-bootstrap intervals and
 accepted-artifact screening profiles. RQ2 compares the 18 generation configurations
