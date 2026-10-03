@@ -1,0 +1,9 @@
+name: veruseval-r
+channels:
+  - conda-forge
+dependencies:
+  - r-base=4.4
+  - r-dplyr
+  - r-ggplot2
+  - r-patchwork
+  - font-ttf-liberation

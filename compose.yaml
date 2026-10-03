@@ -1,0 +1,9 @@
+services:
+  veruseval:
+    platform: linux/amd64
+    build: .
+    image: veruseval:artifact
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    shm_size: 1gb

@@ -1,0 +1,15 @@
+# Send only environment inputs to Docker, even in a checkout containing data.
+**
+!Dockerfile
+!docker/
+!docker/**
+!examples/
+!examples/identity.rs
+!baselines/
+!baselines/verus-proof-synthesis/
+!baselines/verus-proof-synthesis/utils/
+!baselines/verus-proof-synthesis/utils/lynette/
+!baselines/verus-proof-synthesis/utils/lynette/source/
+!baselines/verus-proof-synthesis/utils/lynette/source/**
+**/target/
+**/__pycache__/

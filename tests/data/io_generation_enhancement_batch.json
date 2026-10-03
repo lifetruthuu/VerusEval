@@ -1,0 +1,34 @@
+{
+  "wrong_target": [
+    "VeriCoding_VT0495_vericoded", "VeriCoding_VD0797_vericoded", "VeriCoding_VT0469_vericoded",
+    "VeriCoding_VA0323_vericoded", "VeriCoding_VT0541_vericoded", "VeriCoding_VJ0051_vericoded",
+    "VeriCoding_VH0025_vericoded", "VeriCoding_VT0134_vericoded", "VeriCoding_VJ0064_vericoded",
+    "VeriCoding_VH0138_vericoded", "VeriCoding_VJ0129_vericoded", "VeriCoding_VA0041_vericoded",
+    "VeriCoding_VS0008_vericoded", "VeriCoding_VT0487_vericoded", "VeriCoding_VJ0087_vericoded"
+  ],
+  "mut_post_state": [
+    "DAFNY2VERUS-COLLECTION_186", "DAFNY2VERUS-COLLECTION_205", "DAFNY2VERUS-COLLECTION_220",
+    "DAFNY2VERUS-COLLECTION_222", "VeriCoding_VJ0013_vericoded", "VeriCoding_VJ0043_vericoded",
+    "VeriCoding_VJ0039_vericoded", "VeriCoding_VD0267_vericoded", "VeriCoding_VJ0014_vericoded",
+    "VeriCoding_VJ0035_vericoded", "VeriCoding_VD0081_vericoded", "VeriCoding_VD0257_vericoded",
+    "VeriCoding_VJ0053_vericoded", "VeriCoding_VJ0022_vericoded", "VeriCoding_VJ0036_vericoded"
+  ],
+  "composite_negative": [
+    "MBPP-verified_task_41", "VeriCoding_VT0574_vericoded", "VeriCoding_VT0280_vericoded",
+    "VeriCoding_VT0047_vericoded", "VeriCoding_VS0022_vericoded", "VeriCoding_VT0053_vericoded",
+    "VeriCoding_VT0187_vericoded", "VeriCoding_VT0522_vericoded", "VeriCoding_VT0235_vericoded",
+    "VeriCoding_VT0420_vericoded"
+  ],
+  "finite_invalid": [
+    "MBPP-verified_task_68", "MBPP-verified_task_59", "MBPP-verified_task_66",
+    "MBPP-verified_task_61", "MBPP-verified_task_35", "MBPP-verified_task_32",
+    "MBPP-verified_task_3", "MBPP-verified_task_58", "MBPP-verified_task_67",
+    "MBPP-verified_task_69"
+  ],
+  "complex_or_panic": [
+    "DAFNY2VERUS-COLLECTION_14", "DAFNY2VERUS-COLLECTION_79", "HumanEval-Verus_task_18",
+    "HumanEval-Verus_task_67", "HumanEval-Verus_task_75", "VeriCoding_VV0154_vericoded",
+    "VeriCoding_VA0412_vericoded", "VerusBench_CloverBench_array_concat_strong",
+    "VerusBench_Misc_filter", "VerusBench_Misc_map"
+  ]
+}

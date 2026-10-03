@@ -1,0 +1,8 @@
+# Copy to config.yaml for NEW evaluations; frozen-result analysis needs no config.
+# Verus release: 0.2025.09.25.04e8687. Also add its directory to PATH.
+verus_path: /path/to/verus-04e8687/verus
+io_suite_dir: data/io
+llm:
+  api_key:
+  base_url:
+  model_name:
