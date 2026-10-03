@@ -2,8 +2,8 @@
 
 The matching code and data archives are stored in this repository as parts of
 at most 7 MiB, so they can be downloaded through the anonymous mirror.
-The helper downloads, joins and checks them automatically. Python 3.9 or later
-is sufficient; no extra Python packages are needed.
+The helper downloads, joins and checks them automatically. It uses Python 3.9
+or later and curl; no extra Python packages are needed.
 
 Save [download.py](download.py) and run it, or use these commands:
 
@@ -33,6 +33,5 @@ exact frozen code and records. The repository's current browsing instructions
 can change independently of that snapshot.
 
 From a complete Git checkout, `python downloads/download.py` joins the local
-parts without network access. To run the helper without installing Python on
-the host, use `docker run --rm -v "$PWD:/work" -w /work python:3.11-slim python download.py`
-after saving the script. [Manifest](manifest.json) and [archive checksums](SHA256SUMS).
+parts without network access or curl. [Manifest](manifest.json) and
+[archive checksums](SHA256SUMS).

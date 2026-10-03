@@ -1,17 +1,19 @@
 """Download and verify the matching VerusEval code and data archives.
 
-Python 3.9 or later; no third-party packages. A complete Git checkout uses
+Python 3.9 or later and curl for network downloads; no third-party Python
+packages. A complete Git checkout uses
 local parts. A standalone copy of this script uses the anonymous mirror.
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
 import shutil
-import urllib.request
+import subprocess
 
 DEFAULT_BASE_URL = 'https://anonymous.4open.science/api/repo/VerusEval-A7E4/file/downloads/'
 CHUNK_SIZE = 1024 * 1024
@@ -53,8 +55,19 @@ def validate_manifest(manifest):
 
 
 def read_remote(url):
-    request = urllib.request.Request(url, headers={'Accept': 'application/octet-stream'})
-    return urllib.request.urlopen(request, timeout=60)
+    curl = shutil.which('curl')
+    if not curl:
+        raise OSError('Install curl for network downloads, or use a complete Git checkout.')
+    # Use the same client as the documented bootstrap command. The mirror
+    # accepts curl but can reject Python urllib requests with HTTP 403.
+    result = subprocess.run(
+        [curl, '--fail', '--location', '--silent', '--show-error',
+         '--connect-timeout', '30', '--max-time', '180', '--max-filesize',
+         str(8 * 1024 * 1024), url], capture_output=True)
+    if result.returncode:
+        raise OSError(result.stderr.decode(errors='replace').strip() or
+                      f'curl failed with exit code {result.returncode}: {url}')
+    return io.BytesIO(result.stdout)
 
 
 def restore(manifest, output, source_dir=None, base_url=DEFAULT_BASE_URL):
