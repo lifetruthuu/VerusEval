@@ -97,8 +97,8 @@ def main():
                 parser.error("--generate-specs requires --spec-exemplars-json")
             with open(args.spec_exemplars_json, encoding="utf-8") as f:
                 spec_exemplars = json.load(f)
-            if len(spec_exemplars) != 5:
-                parser.error("--spec-exemplars-json must contain exactly five examples")
+            if len(spec_exemplars) not in (0, 5):
+                parser.error("--spec-exemplars-json must contain zero or five examples")
 
         runner = Generation(
             config,

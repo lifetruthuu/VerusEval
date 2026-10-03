@@ -48,7 +48,8 @@ def load_api_environment(path: Path) -> None:
 def verus_score(path: Path, verus_path: str, timeout: int = 120) -> tuple[int, int, str]:
     try:
         result = subprocess.run(
-            [verus_path, str(path), "--multiple-errors", "100"],
+            [verus_path, str(path), "--crate-name", "generated_program", "--crate-type=lib",
+             "--multiple-errors", "100"],
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -130,7 +131,18 @@ def run_alpha(
     task_dir: Path,
     final_path: Path,
     args: argparse.Namespace,
+    x_map: dict[str, Path] | None = None,
+    y_map: dict[str, Path] | None = None,
 ) -> dict:
+    shot_ids = task.shot_ids if getattr(args, "shot", "zero-shot") == "few-shot" else ()
+    # AlphaVerus writes scratch files in its working directory. Give each task
+    # its own source copy so concurrent runs keep all outputs under output-root.
+    workspace = task_dir / "workflow"
+    workspace.mkdir(parents=True, exist_ok=True)
+    for source in ALPHA_DIR.rglob("*.py"):
+        destination = workspace / source.relative_to(ALPHA_DIR)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
     record_path = task_dir / "input.jsonl"
     record_path.write_text(
         json.dumps(
@@ -138,6 +150,11 @@ def run_alpha(
                 "task_id": task.task_id,
                 "x": task.input_path.read_text(encoding="utf-8"),
                 "y": "",
+                "spec_exemplars": [
+                    {"input": x_map[key].read_text(encoding="utf-8"),
+                     "output": y_map[key].read_text(encoding="utf-8")}
+                    for key in shot_ids
+                ],
             },
             ensure_ascii=False,
         )
@@ -163,7 +180,7 @@ def run_alpha(
         "--zero_shot",
         "--generate_specs",
     ]
-    run_logged(command, ALPHA_DIR, task_dir / "generation.log", args.task_timeout)
+    run_logged(command, workspace, task_dir / "generation.log", args.task_timeout)
     selected, verified, errors = alpha_candidate(task_dir, task.task_id, args.verus_path)
     selected_stage = "inference"
 
@@ -178,9 +195,9 @@ def run_alpha(
             str(args.alpha_tree_width),
             str(args.alpha_repair_rounds),
         ]
-        run_logged(command, ALPHA_DIR, task_dir / "treefinement.log", args.task_timeout)
+        run_logged(command, workspace, task_dir / "treefinement.log", args.task_timeout)
         possible = []
-        for path in ALPHA_DIR.rglob("correct_code.rs"):
+        for path in workspace.rglob("correct_code.rs"):
             if path.stat().st_mtime >= started and selected.name in path.parent.name:
                 possible.append(path)
         if possible:
@@ -195,7 +212,8 @@ def run_alpha(
         "verified": verified,
         "errors": errors,
         "correct": verification_succeeded(verified, errors),
-        "num_shots": 0,
+        "num_shots": len(shot_ids),
+        "shot_ids": list(shot_ids),
         "tree_width": args.alpha_tree_width,
         "repair_rounds": args.alpha_repair_rounds,
     }
@@ -216,7 +234,7 @@ def run_auto(
             "input": x_map[shot_id].read_text(encoding="utf-8"),
             "output": y_map[shot_id].read_text(encoding="utf-8"),
         }
-        for shot_id in task.shot_ids
+        for shot_id in (task.shot_ids if args.shot == "few-shot" else ())
     ]
     exemplar_path = task_dir / "spec_exemplars.json"
     atomic_write_json(exemplar_path, exemplars)
@@ -246,8 +264,8 @@ def run_auto(
         "verified": verified,
         "errors": errors,
         "correct": verification_succeeded(verified, errors),
-        "num_shots": 5,
-        "shot_ids": list(task.shot_ids),
+        "num_shots": len(exemplars),
+        "shot_ids": [item["task_id"] for item in exemplars],
         "repair_rounds": args.auto_repair_rounds,
         "merge_candidates": args.auto_merge_candidates,
     }
@@ -282,7 +300,7 @@ def process_task(
     started = time.monotonic()
     try:
         if args.pipeline == "alphaverus":
-            result = run_alpha(task, task_dir, final_path, args)
+            result = run_alpha(task, task_dir, final_path, args, x_map, y_map)
         else:
             assert config_path is not None
             result = run_auto(task, task_dir, final_path, args, x_map, y_map, config_path)
@@ -307,6 +325,7 @@ def main() -> int:
     load_api_environment(ROOT / "baseline_api.env")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pipeline", choices=("alphaverus", "autoverus"), required=True)
+    parser.add_argument("--shot", choices=("zero-shot", "few-shot"))
     parser.add_argument("--dataset-root", type=Path, default=DATASET_ROOT)
     parser.add_argument("--output-root", type=Path, default=None)
     parser.add_argument(
@@ -341,17 +360,14 @@ def main() -> int:
     parser.add_argument("--auto-repair-rounds", type=int, default=5)
     parser.add_argument("--auto-merge-candidates", type=int, default=5)
     args = parser.parse_args()
+    args.shot = args.shot or ("zero-shot" if args.pipeline == "alphaverus" else "few-shot")
 
     config_path = ROOT / "config.yaml"
     root_config = (yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}) if config_path.is_file() else {}
     args.verus_path = args.verus_path or root_config.get("verus_path") or shutil.which("verus")
     if not args.verus_path and not args.dry_run:
         parser.error("Set --verus-path or verus_path in config.yaml to the pinned Verus binary.")
-    default_name = (
-        "alphaverus_zero_shot_ollama"
-        if args.pipeline == "alphaverus"
-        else "autoverus_few_shot_gpt4o"
-    )
+    default_name = f"{args.pipeline}_{args.shot}"
     args.output_root = (args.output_root or ROOT / "runs" / "generation" / default_name).resolve()
     args.workers = args.workers or (2 if args.pipeline == "alphaverus" else 4)
 
@@ -376,6 +392,7 @@ def main() -> int:
     if args.pipeline == "alphaverus" and not args.dry_run:
         os.environ["ALPHAVERUS_MODEL"] = args.alpha_model
         os.environ["ALPHAVERUS_API_BASE"] = args.alpha_base_url
+        os.environ["VERUS_PATH"] = args.verus_path
 
     tasks, x_map, y_map = load_dataset(args.dataset_root.resolve())
     if args.task_id:
@@ -394,6 +411,9 @@ def main() -> int:
 
     manifest = {
         "pipeline": args.pipeline,
+        "shot": args.shot,
+        "temperature": args.temperature,
+        "auto_merge_candidates": args.auto_merge_candidates if args.pipeline == "autoverus" else None,
         "dataset_root": str(args.dataset_root.resolve()),
         "num_tasks": len(tasks),
         "workers": args.workers,

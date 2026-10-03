@@ -28,25 +28,22 @@ python -m metrics_rebuild.cli.main examples/identity.rs examples/identity.rs \
 The identity example should pass parsing, type checking and verification. Its
 I/O metric can be unavailable because the example has no offline suite.
 
-`scripts/generation/run_spec_baselines.py` launches the adapted AlphaVerus or
-AutoVerus implementation. `scripts/generation/run_verusage_completion.py`
-launches VeruSAGE. Use `--help` for workflow controls, `--dataset-root
-data/generation`, an explicit model/endpoint, and a fresh `--output-root`.
-The `--dry-run` option checks dataset selection and launcher configuration
-without paid model calls. Defaults write new generation under `runs/generation/`.
-Set `VERUS_PATH` to the pinned binary for AlphaVerus's internal checks.
-Optional error exemplars can be supplied with `ALPHAVERUS_ERROR_EXEMPLARS`.
-
-Generation inputs comprise 762 unannotated `X_code/` programs, their `Y/`
-examples and the ordered five-example mapping `knn_similar.json`. Generation
-examples can differ from the evaluation references; see [data](data.md).
-StarVerus supports zero-shot and few-shot generation from the same inputs:
+The [baseline guide](../baselines/README.md) includes the source, prompts and
+executable configurations for all 18 workflow/model/shot combinations. Check
+them without model calls:
 
 ```bash
-python scripts/generation/run_starverus.py --model gpt-4o --shot few-shot --dry-run
+python scripts/generation/run_dataset.py --dry-run --output-root runs/generation-check
 ```
 
-See [StarVerus](../baselines/starverus/README.md) for the source and Docker commands.
+Each workflow generates a complete program containing contracts and proofs
+from `data/generation/X_code/`. Few-shot runs use five ordered X/Y examples from
+`knn_similar.json`; zero-shot runs use none. Choose `--baseline autoverus`,
+`verusage`, `starverus` or `alphaverus`, and optionally `--model`, `--shot` or
+`--benchmark`. The default runs all configurations. Model generation needs API
+credentials; the guide explains endpoints and model identifiers. Use a fresh
+output directory for each invocation. New outputs, logs, input hashes and the
+resolved commands are saved there.
 
 `scripts/io/generate_io_tests_llm.py` generates candidate suites into a required
 output directory. `scripts/io/revalidate_io_tests.py` checks strict I/O validity

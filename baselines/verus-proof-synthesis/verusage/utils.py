@@ -396,6 +396,8 @@ def proof_completion_code_change_is_safe(
             "additions",
         ] + [orig_f.name, changed_f.name]
 
+    if os.environ.get("LYNETTE_PATH"):
+        verus_additions_cmd = [os.environ["LYNETTE_PATH"], "additions", orig_f.name, changed_f.name]
     logger.info(f"Run: {verus_additions_cmd} ")
     m = subprocess.run(verus_additions_cmd, capture_output=True, text=True)
     logger.info(f"Safe check took {time.time() - st_time:.2f} seconds")
@@ -486,6 +488,8 @@ def code_change_is_safe(
         + [orig_f.name, changed_f.name]
     )
 
+    if os.environ.get("LYNETTE_PATH"):
+        verus_compare_cmd = [os.environ["LYNETTE_PATH"], "compare"] + opts + [orig_f.name, changed_f.name]
     m = subprocess.run(verus_compare_cmd, capture_output=True, text=True)
 
     os.unlink(orig_f.name)
@@ -575,6 +579,8 @@ def get_func_body(code: str, fname: str, util_path: Path = UTIL_PATH) -> str:
         orig_f.name,
     ]
 
+    if os.environ.get("LYNETTE_PATH"):
+        lynette_extract_cmd = [os.environ["LYNETTE_PATH"], "func", "extract", "-b", "-f", fname, orig_f.name]
     m = subprocess.run(lynette_extract_cmd, capture_output=True, text=True)
     os.unlink(orig_f.name)
 

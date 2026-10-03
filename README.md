@@ -27,5 +27,10 @@ detection, and contract differences with reference screening and repair.
 Use `--rq 1|2|3|4` to select one, or `--statistics-only` to skip figures.
 Results are saved in `runs/full/`.
 
+To generate new contracts and proofs with the baselines, see
+[baseline configurations and commands](baselines/README.md). The unified entry
+`scripts/generation/run_dataset.py` covers all 18 configurations and supports
+`--dry-run` without model calls.
+
 Code: [MIT](LICENSE). Data and third-party terms:
 [data license](DATA_LICENSE.md), [third-party notices](THIRD_PARTY.md).

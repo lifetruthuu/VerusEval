@@ -211,9 +211,9 @@ behavior. Output the complete Verus program and no explanation. Do not use `assu
             }
             for item in self.spec_exemplars
         ]
-        if len(examples) != 5:
+        if len(examples) not in (0, 5):
             raise ValueError(
-                f"AutoVerus spec-generating inference requires 5 KNN examples, got {len(examples)}"
+                f"AutoVerus spec generation requires zero or five KNN examples, got {len(examples)}"
             )
         return self.llm.infer_llm(
             self.config.aoai_generation_model,

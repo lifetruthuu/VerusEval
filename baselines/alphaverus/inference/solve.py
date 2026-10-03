@@ -155,7 +155,18 @@ def main(config):
                 ]
             }
         ]
-        if len(PROMPT_RANDOM_EXAMPLES)>0:
+        if generate_specs:
+            examples = records[prog_num].get('spec_exemplars', [])
+            if len(examples) not in (0, 5):
+                raise ValueError('Specification generation requires zero or five examples')
+            example_messages = []
+            for example in examples:
+                example_messages.extend([
+                    {'role': 'user', 'content': user_content.replace(program, example['input'], 1)},
+                    {'role': 'assistant', 'content': '```rust\n' + example['output'] + '\n```'},
+                ])
+            messages = messages[:1] + example_messages + messages[1:]
+        elif len(PROMPT_RANDOM_EXAMPLES)>0:
             messages = messages[:1] + pull_random_examples(ys[prog_num]) + messages[1:]
         print('going to call openai')
         response = client.chat.completions.create(

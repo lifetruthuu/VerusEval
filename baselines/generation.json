@@ -1,0 +1,201 @@
+{
+  "format": 1,
+  "description": "Executable rerun settings for the released 18-configuration matrix. API identifiers can be overridden for the selected provider. Complete per-call settings for the frozen outputs were not retained.",
+  "tasks_per_configuration": 762,
+  "few_shot_examples": 5,
+  "models": {
+    "llama": {
+      "api_model": "llama-4-maverick-17b-128e-instruct",
+      "base_url": "",
+      "api_key_env": "GENERATION_LLAMA_API_KEY",
+      "base_url_env": "GENERATION_LLAMA_BASE_URL"
+    },
+    "gpt-4o": {
+      "api_model": "gpt-4o",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "GENERATION_GPT_4O_API_KEY",
+      "base_url_env": "GENERATION_GPT_4O_BASE_URL"
+    },
+    "deepseek-chat": {
+      "api_model": "deepseek-chat",
+      "base_url": "https://api.deepseek.com/v1",
+      "api_key_env": "GENERATION_DEEPSEEK_CHAT_API_KEY",
+      "base_url_env": "GENERATION_DEEPSEEK_CHAT_BASE_URL"
+    },
+    "deepseek-reasoner": {
+      "api_model": "deepseek-reasoner",
+      "base_url": "https://api.deepseek.com/v1",
+      "api_key_env": "GENERATION_DEEPSEEK_REASONER_API_KEY",
+      "base_url_env": "GENERATION_DEEPSEEK_REASONER_BASE_URL"
+    },
+    "qwen-coder": {
+      "api_model": "qwen3-coder-480b-a35b-instruct",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "api_key_env": "GENERATION_QWEN_CODER_API_KEY",
+      "base_url_env": "GENERATION_QWEN_CODER_BASE_URL"
+    }
+  },
+  "workflows": {
+    "alphaverus": {
+      "arguments": {
+        "temperature": 1.0,
+        "alpha-tree-width": 3,
+        "alpha-repair-rounds": 3
+      },
+      "fixed_settings": {
+        "initial_candidates": 1,
+        "max_tokens": 1024
+      }
+    },
+    "autoverus": {
+      "arguments": {
+        "temperature": 1.0,
+        "auto-merge-candidates": 5,
+        "auto-repair-rounds": 5
+      },
+      "fixed_settings": {
+        "max_tokens": 32000
+      }
+    },
+    "verusage": {
+      "arguments": {
+        "temperature": 1.0,
+        "repair-rounds": 5
+      },
+      "model_overrides": {
+        "deepseek-chat": "deepseek-v4-flash"
+      },
+      "endpoint_overrides": {
+        "deepseek-chat": "https://dashscope.aliyuncs.com/compatible-mode/v1"
+      },
+      "fixed_settings": {
+        "max_tokens": 20000
+      }
+    },
+    "starverus": {
+      "arguments": {
+        "temperature": 1.0,
+        "candidates": 5,
+        "alignment-rounds": 3,
+        "repair-temperature": 0.3,
+        "repair-rounds": 3,
+        "actor-candidates": 3,
+        "rewriter-invocations": 1,
+        "rewriter-rounds": 3
+      },
+      "fixed_settings": {
+        "max_tokens": null
+      }
+    }
+  },
+  "runs": [
+    {
+      "baseline": "alphaverus",
+      "model": "llama",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "alphaverus",
+      "model": "llama",
+      "shot": "zero-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "autoverus",
+      "model": "gpt-4o",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "autoverus",
+      "model": "gpt-4o",
+      "shot": "zero-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "deepseek-chat",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "deepseek-chat",
+      "shot": "zero-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "deepseek-reasoner",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "deepseek-reasoner",
+      "shot": "zero-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "gpt-4o",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "gpt-4o",
+      "shot": "zero-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "llama",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "llama",
+      "shot": "zero-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "qwen-coder",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "starverus",
+      "model": "qwen-coder",
+      "shot": "zero-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "verusage",
+      "model": "deepseek-chat",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "verusage",
+      "model": "deepseek-chat",
+      "shot": "zero-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "verusage",
+      "model": "qwen-coder",
+      "shot": "few-shot",
+      "released_programs": 762
+    },
+    {
+      "baseline": "verusage",
+      "model": "qwen-coder",
+      "shot": "zero-shot",
+      "released_programs": 762
+    }
+  ]
+}

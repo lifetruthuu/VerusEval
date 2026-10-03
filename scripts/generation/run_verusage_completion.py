@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Fill missing VeruSAGE shot/model results and run at most five repair rounds."""
+"""Generate VeruSAGE contracts and proofs with up to five repair rounds."""
 
 from __future__ import annotations
 
