@@ -60,9 +60,8 @@ The hash update follows dependencies, including structured RQ3 cache
 keys. Package checks validate each generated source and per-file record plus all
 files when `--all-files` is selected.
 
-`references/availability.json` records 762 available reference files, one per task.
-The target catalog records the SHA-256 of each supplied reference, and the
-integrity check verifies all 762 files against those hashes.
+There are 762 reference files, one per task. The target catalog provides their
+SHA-256 hashes; `references/availability.json` records availability.
 Generation examples differ from evaluation references for
 `HumanEval-Verus_task_36`, `MBPP-verified_task_47`,
 `VerusBench_MBPP_task_id_476` and `VerusBench_MBPP_task_id_588`; examples are not

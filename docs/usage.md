@@ -40,18 +40,13 @@ Optional error exemplars can be supplied with `ALPHAVERUS_ERROR_EXEMPLARS`.
 Generation inputs comprise 762 unannotated `X_code/` programs, their `Y/`
 examples and the ordered five-example mapping `knn_similar.json`. Generation
 examples can differ from the evaluation references; see [data](data.md).
-StarVerus's single-file generation and repair workflow is included in
-[`baselines/starverus`](../baselines/starverus/README.md). Its adapter uses the
-same inputs and supports both zero-shot and five-example few-shot generation:
+StarVerus supports zero-shot and few-shot generation from the same inputs:
 
 ```bash
 python scripts/generation/run_starverus.py --model gpt-4o --shot few-shot --dry-run
 ```
 
-For model calls, set `OPENAI_API_KEY` and `OPENAI_BASE_URL`, remove `--dry-run`,
-and select a fresh `--output-root`. With Docker, pass these variables using
-`docker compose run --rm -e OPENAI_API_KEY -e OPENAI_BASE_URL veruseval`.
-The pinned upstream source, controls and output layout are documented in its README.
+See [StarVerus](../baselines/starverus/README.md) for the source and Docker commands.
 
 `scripts/io/generate_io_tests_llm.py` generates candidate suites into a required
 output directory. `scripts/io/revalidate_io_tests.py` checks strict I/O validity
