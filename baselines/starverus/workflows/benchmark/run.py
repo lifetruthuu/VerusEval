@@ -175,7 +175,7 @@ def _repair_one(
         backbone_model=backbone_model,
     )
     result = pipeline.run()
-    return candidate_file, result.verified
+    return str(result.final_path), result.verified
 
 
 def _process_one(
@@ -204,14 +204,14 @@ def _process_one(
         x_dir=x_dir,
         y_dir=y_dir,
     )
-    _, verified = _repair_one(
+    final_file, verified = _repair_one(
         candidate_file=candidate_file,
         generation_dir=generation_dir,
         repair_dir=repair_dir,
         backbone_model=model_name,
         pipeline_config=pipeline_config,
     )
-    return candidate_file, candidate_count, verified
+    return final_file, candidate_count, verified
 
 
 def _build_parser() -> argparse.ArgumentParser:

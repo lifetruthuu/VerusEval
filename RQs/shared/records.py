@@ -1,4 +1,4 @@
-"""Read the merged evaluation records without replaying corrections."""
+"""Read evaluation records and check their recorded file hashes."""
 import csv
 import hashlib
 import json

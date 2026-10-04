@@ -1,9 +1,9 @@
 """Build and export the reference-review figure with one candidate reference defect per kind.
 
-Run: conda run --no-capture-output -n wd python RQs/RQ4/scripts/build_reference_defects_figure.py
-The card layout follows the earlier draw.io figure. Counts come from results/v5/screen_tasks.csv, and the code
-excerpts come from the hash-checked reference sources listed in results/v5/reference_sources.csv. Export uses the
-draw.io viewer in Playwright's Chromium and writes RQs/RQ4/fig/rq4_reference_defects.{drawio,pdf}.
+Run: python scripts/reproduce.py --rq 4 --output-dir runs/rq4
+Counts and checked reference sources come from RQ4/results/reference_screen/.
+Export uses the bundled draw.io viewer in Playwright's Chromium and writes
+RQ4/figures/rq4_reference_defects.{drawio,pdf} in the reproduction work directory.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ SANS = "fontFamily=Helvetica;"
 MONO_CSS = "font-family:Menlo,Monaco,&quot;Courier New&quot;,monospace;"
 INK, HDR_BLUE, CARD_STROKE = "#1d2b3a", "#1261C5", "#666666"
 KW_BLUE, NUM_GREEN = "#0000ff", "#098658"
-DEFECT = "#c0457a"              # count badge, as in the earlier figure
+DEFECT = "#c0457a"              # count badge
 SLOT_RED = "#d9534f"
 CF, LH = 15, 20
 CHAR = 0.602 * CF
@@ -172,7 +172,7 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 def kind_counts() -> dict[str, int]:
     tasks = read_csv(RESULTS / "screen_tasks.csv")
     union = next(r for r in read_csv(RESULTS / "screen_signals.csv") if r["signal"] == "selected")
-    candidates = [t for t in tasks if t["selected"] == "True" and t["preliminary_label"] == "yes"]
+    candidates = [t for t in tasks if t["selected"] == "True" and t["final_reference_defect"] == "yes"]
     counts = Counter(t["category"] for t in candidates)
     assert set(counts) == {c[0] for c in CASES} and len(candidates) == int(union["candidate"])
     by_task = {t["task_id"]: t for t in tasks}

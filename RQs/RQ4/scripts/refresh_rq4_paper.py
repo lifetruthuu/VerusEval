@@ -75,7 +75,7 @@ CANDIDATE, NO_CANDIDATE, INK, MUTED = "#2a78d6", "#8a8984", "#222222", "#6b6b6b"
 def kind_counts():
     tasks = read_csv(REFERENCE_SCREEN / "screen_tasks.csv")
     union = next(r for r in read_csv(REFERENCE_SCREEN / "screen_signals.csv") if r["signal"] == "selected")
-    candidates = [t for t in tasks if t["selected"] == "True" and t["preliminary_label"] == "yes"]
+    candidates = [t for t in tasks if t["selected"] == "True" and t["final_reference_defect"] == "yes"]
     counts = Counter(t["category"] for t in candidates)
     assert set(counts) == {k for k, _ in KINDS} and len(candidates) == int(union["candidate"])
     return [(label, counts[key]) for key, label in KINDS]

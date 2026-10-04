@@ -1,9 +1,22 @@
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
 
 VERUS_PATH = os.getenv('VERUS_PATH', 'verus')  # Default to 'verus' if not set
+
+def extract_spec_program(content, finish_reason):
+    """Reject incomplete model responses before verification or repair."""
+    if finish_reason == 'length':
+        raise ValueError('AlphaVerus response was truncated; increase --max_tokens')
+    if not content or not content.strip():
+        raise ValueError('AlphaVerus returned no program content')
+    blocks = re.findall(r'```(?:rust)?\s*\n?(.*?)```', content, re.DOTALL | re.IGNORECASE)
+    code = max(blocks, key=len).strip() if blocks else content.strip()
+    if 'verus!' not in code or 'ensures' not in code:
+        raise ValueError('AlphaVerus returned no complete Verus specification')
+    return code
 
 def extract_code(res, add_main=True):
     start = res.find('```')

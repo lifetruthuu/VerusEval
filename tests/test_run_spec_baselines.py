@@ -1,4 +1,5 @@
 import sys
+import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +12,28 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.generation import run_spec_baselines
+
+
+class AlphaResponseTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        spec = importlib.util.spec_from_file_location(
+            "alpha_verus_utils", ROOT / "baselines/alphaverus/inference/verus_utils.py")
+        cls.utils = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.utils)
+
+    def test_empty_and_truncated_responses_cannot_become_verified_stubs(self):
+        for content, reason in [("", "length"), (None, "stop"), ("", "stop"),
+                                ("verus! { fn main() {} }", "stop"),
+                                ("verus! { fn f() ensures true {", "length")]:
+            with self.subTest(content=content, reason=reason):
+                with self.assertRaises(ValueError):
+                    self.utils.extract_spec_program(content, reason)
+
+    def test_complete_response_preserves_program_with_or_without_fence(self):
+        program = 'use vstd::prelude::*;\nverus! { fn f(x: u64) -> (r: u64) ensures r == x { x } }'
+        for response in [program, '```rust\n' + program + '\n```']:
+            self.assertEqual(self.utils.extract_spec_program(response, 'stop'), program)
 
 
 class AlphaCandidateTests(unittest.TestCase):

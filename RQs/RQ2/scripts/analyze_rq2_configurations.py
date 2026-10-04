@@ -1,8 +1,8 @@
 """Compare generation configurations on verifier validity and the quality metrics for RQ2.
 
-Run with: conda run -n wd python RQs/RQ2/scripts/analyze_rq2_configurations.py
-Reads the merged data/evaluation tables and checks overlapping scores against final RQ1;
-no verifier or LLM calls. Outputs stay under RQs/RQ2.
+Run with: python scripts/reproduce.py --rq 2 --output-dir runs/rq2
+Reads data/evaluation and checks overlapping scores against RQ1 results.
+The reproduction runner builds dependencies and validates the output tables.
 """
 
 from __future__ import annotations
@@ -135,19 +135,17 @@ def verify_rq1(encoded: list[dict]) -> int:
 
 
 def main(source: Path = SOURCE, output: Path = OUTPUT, replicates: int = REPLICATES, seed: int = SEED) -> None:
-    validation_path = source / "provenance/validation.json"
-    validation = json.loads(validation_path.read_text())
-    assert validation["status"] == "complete"
     labels = unique_rows(source / "artifact_labels.csv")
     outcomes = unique_rows(source / "artifact_outcomes.csv")
     index = unique_rows(source / "artifact_index.csv")
     eligible = unique_rows(source / "rq1_artifact_labels.csv")
     eligible_outcomes = unique_rows(source / "rq1_artifact_outcomes.csv")
-    exclusions = unique_rows(source / "provenance/excluded_missing_target.csv")
+    assert all(row["analysis_eligible"] in {"True", "False"} for row in index.values())
+    exclusions = {key for key, row in index.items() if row["analysis_eligible"] == "False"}
     assert labels.keys() == outcomes.keys() == index.keys()
-    assert len(labels) == validation["counts"]["records"]
-    assert eligible.keys() == eligible_outcomes.keys() == labels.keys() - exclusions.keys()
-    assert len(exclusions) == validation["excluded_from_analysis"]
+    assert len(labels) == 13716
+    assert eligible.keys() == eligible_outcomes.keys() == labels.keys() - exclusions
+    assert len(exclusions) == 57
     artifacts = [labels[key] for key in sorted(labels)]
     # values[(workflow, model, shot)][metric][task] = value
     values: dict[tuple[str, str, str], dict[str, dict[str, float]]] = defaultdict(lambda: defaultdict(dict))
@@ -175,7 +173,7 @@ def main(source: Path = SOURCE, output: Path = OUTPUT, replicates: int = REPLICA
         encoded.append(record)
         config_rows[config].append(record)
     task_ids = {r["task_id"] for r in artifacts}
-    assert len(values) == validation["configurations"]
+    assert len(values) == 18
     assert all(set(v["BLEU"]) == task_ids for v in values.values())
     overlap = verify_rq1(encoded)
 
@@ -251,8 +249,7 @@ def main(source: Path = SOURCE, output: Path = OUTPUT, replicates: int = REPLICA
     for name, rows in outputs.items():
         write_csv(output / name, rows)
     source_paths = [source / name for name in ("artifact_labels.csv", "artifact_outcomes.csv", "artifact_index.csv",
-                    "rq1_artifact_labels.csv", "rq1_artifact_outcomes.csv", "provenance/validation.json",
-                    "provenance/excluded_missing_target.csv")]
+                    "rq1_artifact_labels.csv", "rq1_artifact_outcomes.csv")]
     source_paths += [RQ1 / "summary.json", RQ1 / "rq1_acceptance_artifacts.csv"]
     code_paths = [Path(__file__).resolve(), ROOT / "RQs/RQ1/scripts/analyze_rq1_accepted_profiles.py"]
     summary = {
@@ -265,7 +262,6 @@ def main(source: Path = SOURCE, output: Path = OUTPUT, replicates: int = REPLICA
         "profile_rows": len(profiles), "prompt_rows": len(deltas), "matched_rows": len(matched),
         "bootstrap_replicates": replicates, "bootstrap_seed": seed, "matched_bootstrap_seed": seed + 1,
         "frontend_sensitivity_bootstrap_seed": seed + 2,
-        "verus_evidence_release": validation["verus_evidence_release"],
         "policy": {
             "verifier_validity": "All original tasks, including artifacts missing the executable target.",
             "quality": "Exclude missing executable targets; average each metric over every remaining artifact with a score, including earlier verification failures where scored.",
@@ -273,7 +269,7 @@ def main(source: Path = SOURCE, output: Path = OUTPUT, replicates: int = REPLICA
             "formal": "Target directions without precondition premises for postconditions. Any rejected required implication gives zero; all proved gives one; otherwise missing. Rejection alone is not a counterexample.",
             "triviality": "Target-function probes, scored as in final RQ1; a rejected probe does not prove non-triviality.",
             "io": "Passed / (passed + failed + unresolved) over all validated cases; empty categories missing. Wrong-output requires admitted input and rejected output.",
-            "evidence": "Merged v5, including the supplementary conclusions already used in final RQ1; no historical overlays reapplied.",
+            "evidence": "Released per-file evaluation records and metric tables.",
             "pairing": "Match by workflow/model/shot and task_id; retain tasks with both scores for each metric; percentile task-bootstrap intervals.",
             "frontend_sensitivity": "I/O prompt contrasts restricted to tasks where both prompts pass frontend checking and have an executable target; this conditional subset is supplementary.",
             "provenance": "Join rq2_artifact_metrics.csv to the hashed source artifact_index.csv by sample_id for per-file paths and hashes.",

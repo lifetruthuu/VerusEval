@@ -5,7 +5,7 @@ import argparse
 from typing import List, Tuple
 import pickle
 import random
-from verus_utils import run_code, extract_code
+from verus_utils import run_code, extract_code, extract_spec_program
 from tqdm import tqdm
 import uuid
 import os
@@ -173,7 +173,7 @@ def main(config):
             model=model,
             messages = messages,
             temperature=temperature,
-            max_tokens=1024,
+            max_tokens=config.get('MAX_TOKENS', 1024),
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
@@ -197,10 +197,11 @@ def main(config):
         num_verifies = []
         good_indexes = []
         for _ in tqdm(range(len(response.choices))):
-            ec = extract_code(response.choices[_].message.content)
             if generate_specs:
-                code = ec.strip()
+                choice = response.choices[_]
+                code = extract_spec_program(choice.message.content, choice.finish_reason)
             else:
+                ec = extract_code(response.choices[_].message.content)
                 if ec.strip().startswith('{'):
                     ec = ec.strip()[1:]
                 code = program + ec.strip()
@@ -315,12 +316,16 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, default='default')
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--max_tokens', type=int, default=1024)
     parser.add_argument('--base_url', type=str, default=os.getenv('ALPHAVERUS_API_BASE'))
     parser.add_argument('--api_key_env', type=str, default='ALPHAVERUS_API_KEY')
     parser.add_argument('--zero_shot', action='store_true')
     parser.add_argument('--generate_specs', action='store_true')
     
     args = parser.parse_args()
+
+    if args.max_tokens < 1:
+        parser.error('--max_tokens must be positive')
 
     if not args.base_url:
         parser.error('--base_url or ALPHAVERUS_API_BASE is required')
@@ -338,6 +343,7 @@ if __name__ == '__main__':
             'TEMPERATURE': args.temperature
         },
         'BATCH_SIZE': args.batch_size,
+        'MAX_TOKENS': args.max_tokens,
         'API_BASE_URL': args.base_url,
         'API_KEY': os.getenv(args.api_key_env, 'EMPTY'),
         'GENERATE_SPECS': args.generate_specs,

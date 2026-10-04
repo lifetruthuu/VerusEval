@@ -1,52 +1,27 @@
-# Third-party material
+# Third-party notices
 
-The root MIT license covers the original VerusEval implementation. The CC BY
-4.0 grant covers original measurements and annotations. Neither grant relicenses
-third-party programs, source excerpts, fonts, or libraries. Existing source-file
-notices are retained.
+VerusEval's code uses the [MIT license](LICENSE), and its evaluation data uses
+[CC BY 4.0](DATA_LICENSE.md). Third-party code, benchmark programs, and assets
+retain their own licenses and source notices.
 
-## Benchmarks and generated programs
+- [AutoVerus and VeruSAGE](https://github.com/microsoft/verus-proof-synthesis):
+  MIT; see the [included license](baselines/verus-proof-synthesis/LICENSE).
+- [StarVerus](https://github.com/Je5s1e/KDD26-ADS-StarVerus):
+  MIT; see the [included license](baselines/starverus/LICENSE).
+- [AlphaVerus](https://github.com/cmu-l3/alphaverus):
+  the bundled code has no standalone license file. Consult its upstream terms;
+  VerusEval's MIT license does not cover this code.
+- [draw.io viewer](https://github.com/jgraph/drawio):
+  Apache 2.0; see the [included license](RQs/RQ4/figures/assets/vendor/LICENSE.drawio).
+- Comic Relief fonts: SIL Open Font License 1.1; see the
+  [included license](RQs/RQ4/figures/assets/fonts/OFL.txt).
 
-The task catalog identifies every benchmark, reference file, target function,
-and supplied file SHA-256. Reference copies come from the baseline dataset
-and registered evaluation evidence. The collection
-contains DAFNY2VERUS-COLLECTION, HumanEval-Verus, MBPP-verified, VeriCoding, and
-VerusBench tasks. Their original source and translation notices apply to the
-reference copies and to source material embedded in generated programs.
+The dataset includes DAFNY2VERUS-COLLECTION, HumanEval-Verus, MBPP-verified,
+VeriCoding, and VerusBench. Their source and translation notices apply to
+reference programs and source material included in generated programs.
+Sources include [HumanEval-Verus](https://github.com/secure-foundations/human-eval-verus),
+[Verus proof synthesis](https://github.com/microsoft/verus-proof-synthesis),
+[VeriCoding](https://arxiv.org/abs/2509.22908), and the
+[Dafny synthesis benchmark](https://doi.org/10.1145/3643763).
 
-Relevant upstream resources cited by the experiment include:
-
-- HumanEval-Verus: https://github.com/secure-foundations/human-eval-verus
-- Verus proof synthesis and benchmark collection: https://github.com/microsoft/verus-proof-synthesis
-- VeriCoding benchmark: https://arxiv.org/abs/2509.22908
-- Dafny synthesis benchmark: https://doi.org/10.1145/3643763
-- StarVerus: https://doi.org/10.1145/3770855.3818485
-
-The local aggregate did not supply a single license covering all benchmark
-translations. This artifact does not assert a new blanket license for them;
-reuse of benchmark source must follow the applicable upstream terms.
-`baselines/LICENSE.verus-proof-synthesis` preserves the Microsoft MIT notice.
-Adapted third-party generation implementations and their runtime source
-dependencies are included under `baselines/`; see its README for their origins
-and the scope of the local adaptations. The upstream AlphaVerus snapshot did
-not contain a standalone license file. This release does not assign the root
-MIT license to that code. The Microsoft license is also retained at
-`baselines/verus-proof-synthesis/LICENSE`.
-
-The StarVerus single-file benchmark source and prompts come from
-https://github.com/Je5s1e/KDD26-ADS-StarVerus at commit
-`0c0ce03c7f68027085bdb70c82075510cf0a8f57`. The upstream benchmark subtree is
-included unchanged. Its MIT notice is retained in `baselines/starverus/LICENSE`;
-the artifact's separate launcher connects it to the published dataset.
-
-## Figure renderer and fonts
-
-The bundled draw.io viewer is from https://viewer.diagrams.net/js/viewer-static.min.js
-(JGraph draw.io, https://github.com/jgraph/drawio). Its Apache-2.0 license is in
-`RQs/RQ4/figures/assets/vendor/LICENSE.drawio`. The release manifest pins the
-exact viewer bytes used by the renderer.
-
-Comic Relief regular/bold fonts are distributed under the SIL Open Font License
-1.1; see `RQs/RQ4/figures/assets/fonts/OFL.txt`. Liberation Sans is installed as
-an environment dependency. Chromium and Python/R dependencies are obtained
-separately through their normal installers and retain their respective licenses.
+Dependencies installed by Docker retain their respective licenses.

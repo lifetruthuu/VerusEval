@@ -1,56 +1,31 @@
-# Evaluating programs and generating specifications
+# Evaluate programs
 
-Configure the pinned Verus binary as described in [installation](installation.md).
-Inside Docker it is already available at `/opt/verus/verus`. Prefix the commands
-below with `docker compose run --rm veruseval` when running from the host.
-The evaluation entry supports a single program/reference pair and directories:
+After [installation](installation.md), run these commands from the project root:
 
 ```bash
-python scripts/evaluation/evaluate.py file -g generated.rs -r reference.rs \
-  -o runs/evaluation --verus-path /opt/verus/verus
-python scripts/evaluation/evaluate.py dir -g generated/ -r references/ \
-  -o runs/directory-evaluation --workers 4 --verus-path /opt/verus/verus
+# One generated program and its reference
+docker compose run --rm veruseval python scripts/evaluation/evaluate.py file \
+  -g generated.rs -r reference.rs -o runs/evaluation --verus-path /opt/verus/verus
+
+# Directories containing matching filenames
+docker compose run --rm veruseval python scripts/evaluation/evaluate.py dir \
+  -g generated/ -r references/ -o runs/directory-evaluation \
+  --workers 4 --verus-path /opt/verus/verus
 ```
 
-Each run writes per-file JSON, scores, summary statistics and plots. The JSON
-contains metric states as well as values. An unavailable metric or empty I/O
-category is not a successful check. Set LLM endpoint/model/key configuration
-when requesting intent judgments; retained offline results need no API calls.
+Directory evaluation matches top-level `.rs` files by name. For baseline outputs,
+use the [pairing instructions](../baselines/README.md#evaluate-newly-generated-programs)
+to collect final programs and their evaluation references.
 
-For an inexpensive identical-file smoke check:
+Each run writes `per_file/*.json`, `scores.csv`, `statistics.json`, `summary.json`,
+and plots. Check metric states alongside scores: unavailable metrics and empty
+I/O categories do not count as successful checks.
 
-```bash
-verus examples/identity.rs
-python -m metrics_rebuild.cli.main examples/identity.rs examples/identity.rs \
-  --no-mutation --compact
-```
+For offline I/O suites, copy `config.example.yaml` to `config.yaml` and set
+`verus_path: /opt/verus/verus` and `io_suite_dir: data/io`. For LLM judgments,
+export `VERUSEVAL_LLM_API_KEY`, `VERUSEVAL_LLM_BASE_URL`, and
+`VERUSEVAL_LLM_MODEL_NAME` on the host, then pass each with `-e VARIABLE` before
+`veruseval` in the Docker command. Without a configured judge, LLM metrics
+are unavailable.
 
-The identity example should pass parsing, type checking and verification. Its
-I/O metric can be unavailable because the example has no offline suite.
-
-The [baseline guide](../baselines/README.md) includes the source, prompts and
-executable configurations for all 18 workflow/model/shot combinations. Check
-them without model calls:
-
-```bash
-python scripts/generation/run_dataset.py --dry-run --output-root runs/generation-check
-```
-
-Each workflow generates a complete program containing contracts and proofs
-from `data/generation/X_code/`. Few-shot runs use five ordered X/Y examples from
-`knn_similar.json`; zero-shot runs use none. Choose `--baseline autoverus`,
-`verusage`, `starverus` or `alphaverus`, and optionally `--model`, `--shot` or
-`--benchmark`. The default runs all configurations. Model generation needs API
-credentials; the guide explains endpoints and model identifiers. Use a fresh
-output directory for each invocation. New outputs, logs, input hashes and the
-resolved commands are saved there.
-
-`scripts/io/generate_io_tests_llm.py` generates candidate suites into a required
-output directory. `scripts/io/revalidate_io_tests.py` checks strict I/O validity
-and defaults to `runs/io/revalidated`; `scripts/io/rebuild_io_suite_summary.py`
-rebuilds summary metadata from a selected suite directory.
-
-Run the retained tests with `python -m unittest discover -s tests`. The standalone
-scripts `tests/test_trivial_enhancements.py` and `tests/test_z3_parser_enhancements.py`
-cover additional parser and triviality cases. Some proof tests require the pinned
-Verus on `PATH`; offline baseline tests do not call model services.
+To reproduce the paper's released results, follow [Part 1](reproduction.md).

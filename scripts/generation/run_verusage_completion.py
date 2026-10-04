@@ -457,8 +457,8 @@ def main() -> int:
         parser.error("Set --verus-path or verus_path in config.yaml to the pinned Verus binary.")
     if args.workers < 1:
         parser.error("--workers must be positive")
-    if args.repair_rounds != 5:
-        parser.error("VeruSAGE completion must use exactly 5 repair rounds")
+    if args.repair_rounds < 1:
+        parser.error("--repair-rounds must be positive")
     if not args.api_base and not args.dry_run:
         parser.error("--api-base or VERUSAGE_API_BASE is required")
     missing_api_keys = [model.label for model in args.model if not args.api_keys[model.label]]

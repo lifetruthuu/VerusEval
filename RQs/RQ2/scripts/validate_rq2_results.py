@@ -1,6 +1,6 @@
 """Validate RQ2 scores, populations, paired intervals and sampled per-file sources.
 
-Run with: conda run --no-capture-output -n wd python RQs/RQ2/scripts/validate_rq2_results.py
+Called by: python scripts/reproduce.py --rq 2 --output-dir runs/rq2
 Uses independent score/aggregation code, without importing the analysis script.
 """
 
@@ -160,7 +160,7 @@ def validate() -> None:
         interval_checks[name] = len(rows)
 
     # Audit one record per configuration, verification stage and eligibility stratum.
-    # Full-file checksums were already verified by the v5 migration.
+    # The reproduction runner checks all released file hashes before analysis.
     for sample_id in audit_samples.values():
         entry, label, outcome = index[sample_id], labels[sample_id], outcomes[sample_id]
         path = ROOT / entry["result_path"]

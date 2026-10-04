@@ -5,7 +5,7 @@ import argparse
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from rq3_io_common import ROOT, RESULTS, file_hash, read_csv, read_json, write_csv, write_json
+from rq3_io_common import ROOT, RESULTS, file_hash, read_csv, write_csv, write_json
 
 FORMAL = {
     "soundness": ("pre_ref_to_gen", "post_gen_to_ref"),
@@ -52,13 +52,10 @@ def summarize(rows, group, scope):
 
 def analyze(source=ROOT / "data/evaluation", output=RESULTS / "natural"):
     source, output = Path(source), Path(output)
-    validation = read_json(source / "provenance/validation.json")
-    if validation["status"] != "complete":
-        raise ValueError("Final evaluation data is incomplete")
     paths = [source / name for name in ("rq1_artifact_outcomes.csv", "rq1_artifact_labels.csv")]
     outcomes = read_csv(paths[0])
     labels = {r["sample_id"]: r for r in read_csv(paths[1])}
-    if len(labels) != len(outcomes) or {r["sample_id"] for r in outcomes} != set(labels):
+    if len(labels) != len(outcomes) or len(outcomes) != 13659 or {r["sample_id"] for r in outcomes} != set(labels):
         raise ValueError("Input IDs are not unique/aligned")
     profiles = [profile(r, labels[r["sample_id"]]) for r in outcomes if r["verification_stage"] == "accepted"]
     # Check the definition against the completed RQ1, including incomplete checks.
@@ -130,7 +127,7 @@ def analyze(source=ROOT / "data/evaluation", output=RESULTS / "natural"):
                "tasks": len({r["task_id"] for r in profiles}), "overall": overall,
                "rq1_states_checked": len(profiles), "configuration_comparisons": len(contrasts),
                "policy": "Primary I/O pass matches RQ1: all available cases pass, no unresolved; empty kinds allowed. Complete three-kind scope is separate. Proof rejection is not a counterexample. Matched differences are descriptive.",
-               "source_sha256": {str(p.relative_to(ROOT)): file_hash(p) for p in [*paths, rq1_path, source / "provenance/validation.json"]},
+               "source_sha256": {str(p.relative_to(ROOT)): file_hash(p) for p in [*paths, rq1_path]},
                "code_sha256": file_hash(Path(__file__))}
     write_json(output / "summary.json", summary)
     return summary

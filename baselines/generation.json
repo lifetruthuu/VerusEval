@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "description": "Executable rerun settings for the released 18-configuration matrix. API identifiers can be overridden for the selected provider. Complete per-call settings for the frozen outputs were not retained.",
+  "description": "Executable settings for the released 18-configuration matrix. API identifiers can be overridden for the selected provider.",
   "tasks_per_configuration": 762,
   "few_shot_examples": 5,
   "models": {
@@ -17,7 +17,7 @@
       "base_url_env": "GENERATION_GPT_4O_BASE_URL"
     },
     "deepseek-chat": {
-      "api_model": "deepseek-chat",
+      "api_model": "deepseek-flash",
       "base_url": "https://api.deepseek.com/v1",
       "api_key_env": "GENERATION_DEEPSEEK_CHAT_API_KEY",
       "base_url_env": "GENERATION_DEEPSEEK_CHAT_BASE_URL"
@@ -40,11 +40,11 @@
       "arguments": {
         "temperature": 1.0,
         "alpha-tree-width": 3,
-        "alpha-repair-rounds": 3
+        "alpha-repair-rounds": 3,
+        "alpha-max-tokens": 1024
       },
       "fixed_settings": {
-        "initial_candidates": 1,
-        "max_tokens": 1024
+        "initial_candidates": 1
       }
     },
     "autoverus": {

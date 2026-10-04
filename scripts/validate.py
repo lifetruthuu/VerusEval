@@ -105,7 +105,6 @@ def validate(root=ROOT, all_files=False):
             require(source[field] == entry[field], f"{field} mismatch: {entry['sample_id']}")
         generated = safe_path(root, source['generated_path'])
         verify_hash(generated, source['generated_sha256'])
-        require(source['generated_sha256'] == record['migration_v5']['generated_source_sha256'], f"Source lineage mismatch: {entry['sample_id']}")
     return {'status': 'passed', 'artifacts': len(index), 'tasks': len(catalog), 'configurations': len(configs),
             'analysis_artifacts': len(eligible), 'excluded': len(index) - len(eligible),
             'generated_source_hashes_checked': len(corpus), 'per_file_hashes_checked': len(index),

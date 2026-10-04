@@ -1,36 +1,35 @@
 # VerusEval
 
-Evaluate generated Verus specifications, reproduce four research questions,
-and run the included baseline adapters. The released corpus covers 13,716
-programs, 762 tasks, 762 reference files and 18 configurations.
+VerusEval evaluates generated Verus specifications. This artifact includes the
+released results, datasets, analysis scripts, and four baseline implementations.
+The dataset contains 762 tasks and 13,716 generated programs across 18 configurations.
 
-[Browse the full metric images](gallery/README.md) ·
-[Download code and data](downloads/README.md) ·
-[Installation](docs/installation.md) · [Usage](docs/usage.md) ·
-[Reproduction](docs/reproduction.md) · [Data](docs/data.md)
+## 1. Reproduce the paper's tables and results
 
-Download the [matching code and data archives](downloads/README.md) and extract
-both into the same empty directory. With Docker and Docker Compose installed,
-run from that directory:
+Start with [the result reproduction guide](docs/reproduction.md). Download the
+matching code and data archives, extract both into one empty directory, and run:
 
 ```bash
 docker compose run --build --rm veruseval
 docker compose run --rm veruseval python scripts/reproduce.py --rq all --output-dir runs/full
 ```
 
-This installs Verus `0.2025.09.25.04e8687`, Rust `1.88.0`, Python 3.11,
-R, and the plotting and baseline dependencies. Downloads are available directly
-from this repository through the anonymous mirror.
+This rebuilds tables, statistics, and figures from the released evaluation
+records and checks numerical results against the released expected tables.
+It needs no model API credentials. The guide lists the output files, how to
+check success, and commands for statistics only or an individual RQ.
 
-The four RQs cover acceptance and quality, generation configurations, I/O
-detection, and contract differences with reference screening and repair.
-Use `--rq 1|2|3|4` to select one, or `--statistics-only` to skip figures.
-Results are saved in `runs/full/`.
+## 2. Run and evaluate the baselines
 
-To generate new contracts and proofs with the baselines, see
-[baseline configurations and commands](baselines/README.md). The unified entry
-`scripts/generation/run_dataset.py` covers all 18 configurations and supports
-`--dry-run` without model calls.
+Continue with [the baseline guide](baselines/README.md) to run AutoVerus,
+VeruSAGE, StarVerus, and AlphaVerus on the dataset. It provides model and API
+configuration, commands for each tool, links to the generation and repair code,
+and instructions for evaluating newly generated programs with VerusEval.
+These runs use your model service and API credentials.
+
+Additional references: [downloads](downloads/README.md),
+[installation](docs/installation.md), [evaluation options](docs/usage.md),
+[data layout](docs/data.md), and [metric image gallery](gallery/README.md).
 
 Code: [MIT](LICENSE). Data and third-party terms:
 [data license](DATA_LICENSE.md), [third-party notices](THIRD_PARTY.md).

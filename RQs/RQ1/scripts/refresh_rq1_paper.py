@@ -85,19 +85,16 @@ def write_table(rows: list[dict], source_note: str | None = None) -> None:
     (PAPER / "tables/rq1_acceptance_association.tex").write_text("\n".join(lines), encoding="utf-8")
 
 def refresh_table4(source_root: Path) -> None:
-    """Update only Table 4 from materialized records, without replaying overlays."""
+    """Update Table 4 from the released evaluation tables."""
     source_root = source_root.absolute()
     paths = {"labels": source_root / "rq1_artifact_labels.csv",
-             "outcomes": source_root / "rq1_artifact_outcomes.csv",
-             "validation": source_root / "provenance/validation.json"}
+             "outcomes": source_root / "rq1_artifact_outcomes.csv"}
     input_hashes = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                     for p in paths.values()}
-    validation = json.loads(paths["validation"].read_text(encoding="utf-8"))
-    assert validation["status"] == "complete", "The source migration must be complete"
     labels, outcomes = read_csv(paths["labels"]), read_csv(paths["outcomes"])
     labels_by_id = {r["sample_id"]: r for r in labels}
     outcomes_by_id = {r["sample_id"]: r for r in outcomes}
-    assert len(labels_by_id) == len(labels) and len(outcomes_by_id) == len(outcomes)
+    assert len(labels_by_id) == len(labels) == len(outcomes_by_id) == len(outcomes) == 13659
     assert labels_by_id.keys() == outcomes_by_id.keys()
     assert all(r["verification_stage"] == outcomes_by_id[s]["verification_stage"]
                and r["task_id"] == outcomes_by_id[s]["task_id"]
@@ -111,8 +108,7 @@ def refresh_table4(source_root: Path) -> None:
     summary = {"status": "in_progress", "source_sha256": input_hashes,
                "groups": dict(groups), "tasks": len({r["task_id"] for r in selected}),
                "bootstrap_unit": "task", "bootstrap_replicates": association.REPLICATES,
-               "bootstrap_seed": association.SEED,
-               "verus_evidence_release": validation["verus_evidence_release"]}
+               "bootstrap_seed": association.SEED}
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     association.ARTIFACTS, association.OUTCOMES = paths["labels"], paths["outcomes"]
     association.OUTPUT, association.PAPER_TAB = output, output

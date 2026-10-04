@@ -1,60 +1,64 @@
-# Reproducing the paper
+# Part 1: Reproduce the paper's tables and results
 
-Run `python scripts/reproduce.py --rq all --output-dir runs/full` after installing
-the figure dependencies. `--statistics-only` generates statistics and LaTeX
-tables without rendering figures. `--rscript` selects the R executable.
-In Docker, prefix this command with `docker compose run --rm veruseval`; all
-figure dependencies and Rscript are already installed.
-`--rq` accepts exactly `all`, `1`, `2`, `3`, and `4`; each selection is runnable
-from the [matching code and data archives](../downloads/README.md) extracted
-into the same directory.
+[Download and extract](../downloads/README.md) the matching code and data
+archives into one directory. With [Docker and Docker Compose](installation.md)
+installed, run from that directory:
 
-The entry validates every released file before starting, copies analysis code
-to the output workspace and reads the released data. The workspace links its
-`data/` directory to the extracted data, so retain that data while inspecting
-the workspace. The entry starts with no generated RQ outputs. RQ2 and RQ3 first
-build the RQ1 encodings they need. Statistical scripts read the final records.
+```bash
+docker compose run --build --rm veruseval
+docker compose run --rm veruseval python scripts/reproduce.py \
+  --rq all --output-dir runs/full
+```
 
-RQ1 produces acceptance/quality associations, task-bootstrap intervals and
-accepted-artifact screening profiles. RQ2 compares the 18 generation configurations
-and renders the current workflow and model/prompt figures. RQ3 computes conditional
-quality among accepted artifacts and checks 395 bases and 943 retained variants,
-including witnesses, proof-source identities, case outcomes and fixed denominators.
+This rebuilds tables, statistics, and figures from the released evaluation
+records without model API calls. Use a new or empty output directory for each run.
 
-RQ4 includes all contract-difference, reference-screening, review and repair
-results. It checks 3,765 flagged accepted artifacts, 61 screened references,
-36 candidate reference defects, four witness cases and 11 repair comparisons.
-Ten of the 11 contracts become equivalent to the corrected reference; the remaining
-unconditional postcondition rejection has a separate recorded explanation.
-Candidate annotations, supporting evidence and the review scope are recorded
-in the released data.
+For statistics and LaTeX tables only, or a single RQ:
 
-CSV results live under `work/RQs/RQ*/results/`, LaTeX tables under `tables/`, and
-figures under `figures/`. RQ4 reference-screen statistics are under
-`RQ4/results/reference_screen/`. `reproduction.json` records each command, return
-code and log. Numerical comparisons use the frozen expected tables in
-`data/evidence/paper_results/`, with absolute tolerance `1e-12`. PDF byte identity
-is not expected across font and renderer versions.
+```bash
+# Statistics and tables
+docker compose run --rm veruseval python scripts/reproduce.py \
+  --rq all --statistics-only --output-dir runs/statistics
 
-RQ4 also writes `reference_repair.csv`, `reference_repair_summary.json` and
-`case_summary.json`, so the repair comparisons and four witnesses are available
-beside the direction and screening results.
+# One result group: --rq accepts 1, 2, 3, or 4
+docker compose run --rm veruseval python scripts/reproduce.py \
+  --rq 2 --output-dir runs/rq2
+```
 
-Use `python scripts/validate.py --all-files` for corpus integrity and
-`python scripts/validate.py --results runs/full/work` to compare a completed run.
-Missing files, altered hashes and unsupported RQ selections fail explicitly.
-The published whitelist `release-files.json` governs packaging;
-`python scripts/package.py --output-dir /new/archive/directory` rebuilds the two
-archives without including unlisted local files.
+RQ2 and RQ3 build their required RQ1 intermediate results automatically.
+The [RQ script index](../RQs/README.md) maps each analysis to its code and inputs.
 
-Reproduction checks frozen outcomes and archived proof evidence. It does not
-rerun every verifier call, regenerate I/O cases or contact the original models.
-New evaluations and generation use the separate workflows in [usage](usage.md).
+## Outputs and validation
 
-The [metric image gallery](../gallery/README.md) contains 36 complete PNG
-overviews regenerated from the released records. Run
-`python scripts/plot_gallery.py --output-dir runs/gallery` to rebuild it.
-Its manifest records input and image hashes, sample counts and plotted summaries.
-Gallery means use the documented chart policy and all 13,716 generation outputs;
-the paper's quality analyses use 13,659 eligible outputs. Original generation
-partitions named verified/unverified are distinct from final acceptance labels.
+A successful run exits with code 0 and sets `"status": "passed"` in
+`runs/full/reproduction.json`. This file lists stage logs and the numerical
+tables compared against `data/evidence/paper_results/`, with absolute tolerance
+`1e-12`.
+
+Main result paths below are relative to `runs/full/work/RQs/`:
+
+| Group | Result files |
+| --- | --- |
+| RQ1 | `RQ1/results/rq1_acceptance_association.csv` |
+| RQ2 | `RQ2/results/rq2_configuration_profiles.csv`, `RQ2/results/rq2_prompt_deltas.csv` |
+| RQ3 | `RQ3/results/natural/conditional_rates.csv`, `RQ3/results/variants/detection_matrix.csv` |
+| RQ4 | `RQ4/results/directions.csv`, `RQ4/results/reference_screen/screen_signals.csv`, `RQ4/results/reference_repair.csv` |
+
+LaTeX tables are under `RQ1/tables/` and `RQ3/tables/`; rendered figures are under
+each RQ's `figures/` directory. Recheck a completed run with:
+
+```bash
+docker compose run --rm veruseval python scripts/validate.py --results runs/full/work
+```
+
+For a single-RQ run, use its output path and matching selector, for example
+`--results runs/rq2/work --rq 2`. Keep the extracted data available:
+`work/data` links to it.
+
+For missing files or hash mismatches, extract matching archives into a new
+directory. For a failed stage, open its log listed in `reproduction.json`.
+Numerical comparison errors identify the CSV, row, and field.
+
+To generate and evaluate new programs, continue with
+[Part 2: run and evaluate baselines](../baselines/README.md).
+The optional [metric gallery](../gallery/README.md) has its own regeneration command.

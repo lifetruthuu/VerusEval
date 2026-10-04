@@ -1,4 +1,4 @@
-"""Check cohort accounting, paper provenance, and archived verifier evidence."""
+"""Check RQ4 populations, source hashes, review records, and verifier evidence."""
 from __future__ import annotations
 
 import json
@@ -33,14 +33,34 @@ def main():
     screen = read_csv(REFERENCE_SCREEN / "screen_tasks.csv")
     assert len(screen) == len({r["task_id"] for r in screen}) == 762
     selected = [r for r in screen if r["selected"] == "True"]
+    reviews = read_csv(ROOT / "data/evidence/reference_review/candidate_reviews.csv")
+    assert len(selected) == len(reviews) == len({r["task_id"] for r in reviews}) == 61
+    assert {r["task_id"] for r in reviews} == {r["task_id"] for r in selected}
+    screened = {r["task_id"]: r for r in selected}
+    disagreements = 0
+    for row in reviews:
+        task = row["task_id"]
+        agreement = all(row[f"reviewer_a_{key}"] == row[f"reviewer_b_{key}"]
+                        for key in ("reference_defect", "primary"))
+        assert row["initial_agreement"] == str(agreement), task
+        assert row["expert_adjudicated"] == str(not agreement), task
+        assert screened[task]["final_reference_defect"] == row["final_reference_defect"], task
+        assert screened[task]["category"] == row["final_primary"], task
+        if not agreement:
+            assert row["expert_rationale"], task
+            disagreements += 1
+    assert disagreements == 4
     assert all((r["selected"] == "True") == any(r[k] == "True" for k in ("S0", "S1", "S2", "S3", "S4")) for r in screen)
     for row in read_csv(REFERENCE_SCREEN / "screen_signals.csv"):
         subset = [r for r in screen if r[row["signal"]] == "True"]
         assert len(subset) == int(row["tasks"])
         assert len(subset) == sum(int(row[k]) for k in ("candidate", "no_candidate", "not_reviewed"))
-    candidates = {r["task_id"] for r in selected if r["preliminary_label"] == "yes"}
+    candidates = {r["task_id"] for r in selected if r["final_reference_defect"] == "yes"}
     current = [r for r in flagged if r["task_id"] not in candidates]
-    for row in read_csv(REFERENCE_SCREEN / "sensitivity.csv"):
+    sensitivity = read_csv(REFERENCE_SCREEN / "sensitivity.csv")
+    assert len(sensitivity) == 8
+    assert {r["cohort"] for r in sensitivity} == {"All flagged", "Exclude current candidate tasks"}
+    for row in sensitivity:
         if row["cohort"] == "Exclude current candidate tasks":
             assert len(current) == int(row["denominator"])
             assert sum(r[row["direction"]] == "invalid" for r in current) == int(row["artifacts"])

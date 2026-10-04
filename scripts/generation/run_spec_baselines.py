@@ -177,6 +177,8 @@ def run_alpha(
         str(args.temperature),
         "--batch_size",
         "1",
+        "--max_tokens",
+        str(getattr(args, "alpha_max_tokens", 1024)),
         "--zero_shot",
         "--generate_specs",
     ]
@@ -351,6 +353,8 @@ def main() -> int:
     )
     parser.add_argument("--skip-alpha-treefinement", action="store_true")
     parser.add_argument("--alpha-tree-width", type=int, default=3)
+    parser.add_argument("--alpha-max-tokens", type=int, default=1024,
+                        help="Initial AlphaVerus response token budget, including provider reasoning tokens.")
     parser.add_argument("--alpha-repair-rounds", type=int, default=3)
     parser.add_argument("--auto-model", default="gpt-4o")
     parser.add_argument(
@@ -422,6 +426,7 @@ def main() -> int:
         "auto_model": args.auto_model if args.pipeline == "autoverus" else None,
         "auto_base_url": args.auto_base_url if args.pipeline == "autoverus" else None,
         "alpha_tree_width": args.alpha_tree_width if args.pipeline == "alphaverus" else None,
+        "alpha_max_tokens": args.alpha_max_tokens if args.pipeline == "alphaverus" else None,
         "alpha_repair_rounds": args.alpha_repair_rounds if args.pipeline == "alphaverus" else None,
         "alpha_model": args.alpha_model if args.pipeline == "alphaverus" else None,
         "alpha_base_url": args.alpha_base_url if args.pipeline == "alphaverus" else None,

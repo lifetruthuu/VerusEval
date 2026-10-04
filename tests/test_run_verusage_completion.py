@@ -1,4 +1,6 @@
 import json
+import contextlib
+import io
 import sys
 import tempfile
 import unittest
@@ -21,6 +23,22 @@ import spec_generation
 
 
 class VerusageCompletionTests(unittest.TestCase):
+    def test_single_round_smoke_run_is_accepted_without_api_calls(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = ['run_verusage_completion.py', '--model', 'deepseek-chat',
+                    '--dataset-root', str(ROOT / 'data/generation'), '--output-root', directory,
+                    '--repair-rounds', '1', '--limit', '1', '--dry-run']
+            with patch.object(sys, 'argv', args), contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(completion.main(), 0)
+            self.assertEqual(json.loads(output.getvalue())['missing'], 1)
+
+    def test_zero_repair_rounds_is_rejected(self):
+        with patch.object(sys, 'argv', ['run_verusage_completion.py', '--model', 'deepseek-chat',
+                                      '--repair-rounds', '0', '--dry-run']):
+            with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as raised:
+                completion.main()
+        self.assertEqual(raised.exception.code, 2)
+
     def test_zero_errors_counts_as_verification_success(self):
         self.assertTrue(completion.verification_succeeded(0, 0))
         self.assertTrue(completion.verification_succeeded(3, 0))

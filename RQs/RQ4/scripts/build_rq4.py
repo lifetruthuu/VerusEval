@@ -1,9 +1,4 @@
-"""Rebuild RQ4 diagnostics and REFERENCE_SCREEN reference screening from merged records.
-
-Historical labels provide preliminary evidence. Screened references without a
-historical label use the agreed labels of the 2026-10-01 reference review.
-No historical corrections are overlaid on the merged target outcomes.
-"""
+"""Rebuild RQ4 diagnostics and reference screening for the 61 reviewed candidates."""
 
 from __future__ import annotations
 
@@ -128,20 +123,24 @@ def main():
         "outcomes": "data/evaluation/rq1_artifact_outcomes.csv",
         "index": "data/evaluation/artifact_index.csv",
         "catalog": "data/evaluation/target_functions.csv",
-        "historical_labels": "data/evidence/reference_review/prior_labels.csv",
-        "review_labels": "data/evidence/reference_review/labels_final.csv",
-        "historical_annotations": "data/evidence/reference_review/prior_annotations.csv",
+        "reviews": "data/evidence/reference_review/candidate_reviews.csv",
     }.items()}
     data = {name: read_csv(path) for name, path in paths.items()}
     index = {r["sample_id"]: r for r in data["index"]}
     catalog = {r["task_id"]: r for r in data["catalog"]}
-    labels = {r["task_id"]: r for r in data["historical_labels"]}
-    review = {r["task_id"]: r for r in data["review_labels"]}
-    assert not review.keys() & labels.keys()
-    # Both annotators of a label agree on the defect decision and the primary label.
-    agreement = {r["task_id"]: r["defect_agree"] == r["primary_agree"] == "True" for r in data["historical_annotations"]}
-    assert agreement.keys() == labels.keys()
-    agreement.update({task: True for task in review})
+    review = {r["task_id"]: r for r in data["reviews"]}
+    assert len(review) == len(data["reviews"]) == 61
+    agreement = {}
+    for task, row in review.items():
+        first = (row["reviewer_a_reference_defect"], row["reviewer_a_primary"])
+        second = (row["reviewer_b_reference_defect"], row["reviewer_b_primary"])
+        agreement[task] = first == second
+        assert row["initial_agreement"] == str(agreement[task]), task
+        assert row["expert_adjudicated"] == str(not agreement[task]), task
+        assert row["reviewer_a_rationale"] and row["reviewer_b_rationale"], task
+        if not agreement[task]:
+            assert row["expert_rationale"], task
+    assert sum(not agrees for agrees in agreement.values()) == 4
     accepted = [r for r in data["outcomes"] if r["verification_stage"] == "accepted"]
     assert len({r["sample_id"] for r in accepted}) == len(accepted)
     grouped = defaultdict(list)
@@ -257,59 +256,54 @@ def main():
         for name, subset in (("S3", s3), ("S4", s4)):
             signals[name] = (len(rows) >= 6 and len(subset) / len(rows) >= .8
                              and len({r["sample_id"].split("|")[1] for r in subset}) >= 3)
-        label = labels.get(task) or review.get(task, {})
-        label_source = "historical" if task in labels else "review_20261001" if task in review else ""
+        label = review.get(task, {})
         screen.append({"task_id": task, "accepted": len(rows), **signals,
                        "selected": any(signals.values()), "s3_artifacts": len(s3), "s4_artifacts": len(s4),
-                       "preliminary_label": label.get("final_reference_defect", "not_reviewed"),
+                       "final_reference_defect": label.get("final_reference_defect", "not_reviewed"),
                        "category": label.get("final_primary", ""),
-                       "label_layer": label.get("label_layer", "not_reviewed"),
-                       "label_source": label_source})
+                       "initial_agreement": label.get("initial_agreement", ""),
+                       "expert_adjudicated": label.get("expert_adjudicated", "")})
     selected = [r for r in screen if r["selected"]]
+    assert {r["task_id"] for r in selected} == review.keys(), "Candidate and review populations differ"
     signals = []
     for signal in ("S0", "S1", "S2", "S3", "S4", "selected"):
         subset = [r for r in screen if r[signal]]
         signals.append({"signal": signal, "tasks": len(subset),
-                        "candidate": sum(r["preliminary_label"] == "yes" for r in subset),
-                        "no_candidate": sum(r["preliminary_label"] == "no" for r in subset),
-                        "not_reviewed": sum(r["preliminary_label"] == "not_reviewed" for r in subset)})
-    candidates = {t for t, r in labels.items() if r["final_reference_defect"] == "yes"}
-    current_candidates = {r["task_id"] for r in selected if r["preliminary_label"] == "yes"}
+                         "candidate": sum(r["final_reference_defect"] == "yes" for r in subset),
+                         "no_candidate": sum(r["final_reference_defect"] == "no" for r in subset),
+                         "not_reviewed": sum(r["final_reference_defect"] == "not_reviewed" for r in subset)})
+    candidates = {r["task_id"] for r in selected if r["final_reference_defect"] == "yes"}
     sensitivity = []
     for name, subset in (("All flagged", flagged),
-                         ("Exclude current candidate tasks", [r for r in flagged if r["task_id"] not in current_candidates]),
-                         ("Exclude historical candidate tasks", [r for r in flagged if r["task_id"] not in candidates])):
+                         ("Exclude current candidate tasks", [r for r in flagged if r["task_id"] not in candidates])):
         for key, title, *_ in DIRECTIONS:
             n = sum(r[key] == "invalid" for r in subset)
             sensitivity.append({"cohort": name, "direction": key, "diagnostic": title,
                                 "artifacts": n, "denominator": len(subset), "share": n / len(subset)})
     review_summary = {"references": len(catalog), "references_with_probe": len(ref_available),
                 "selected": len(selected), "signals": signals,
-                "selected_label_layers": dict(Counter(r["label_layer"] for r in selected)),
-                "selected_candidate_categories": dict(Counter(r["category"] for r in selected if r["preliminary_label"] == "yes")),
-                "selected_label_sources": dict(Counter(r["label_source"] or "none" for r in selected)),
-                "selected_annotator_agreement": sum(agreement.get(r["task_id"], False) for r in selected),
-                "selected_disagreements_human_reviewed": sum(
-                    not agreement[r["task_id"]] and r["label_layer"] == "human_review"
-                    for r in selected if r["task_id"] in agreement),
-                "historical_labels": len(labels),
-                "historical_label_layers": dict(Counter(r["label_layer"] for r in labels.values())),
-                "historical_candidates": len(candidates),
-                "historical_candidate_categories": dict(Counter(r["final_primary"] for r in labels.values() if r["final_reference_defect"] == "yes")),
-                "not_reviewed": [r["task_id"] for r in selected if r["preliminary_label"] == "not_reviewed"],
+                "human_reviewers": 2, "expert_adjudicators": 1,
+                "candidates_with_two_reviews": len(review),
+                "selected_candidate_categories": dict(Counter(r["category"] for r in selected if r["final_reference_defect"] == "yes")),
+                "selected_annotator_agreement": sum(agreement.values()),
+                "selected_expert_adjudications": sum(r["expert_adjudicated"] == "True" for r in review.values()),
+                "agreement_final_mismatches": [task for task, r in review.items()
+                    if agreement[task] and (r["reviewer_a_reference_defect"], r["reviewer_a_primary"])
+                    != (r["final_reference_defect"], r["final_primary"])],
+                "not_reviewed": [r["task_id"] for r in selected if r["final_reference_defect"] == "not_reviewed"],
                 "candidate_flagged": sum(r["task_id"] in candidates for r in flagged),
                 "sensitivity": sensitivity,
-                "scope": "Target-function signals and candidate annotations, combining historical labels and recorded subset review with the 2026-10-01 review of previously unlabeled references."}
+                "scope": "Two human reviewers assess all 61 candidate references; one expert adjudicates the four reviewer disagreements."}
     write_csv(REFERENCE_SCREEN / "screen_tasks.csv", screen)
     write_csv(REFERENCE_SCREEN / "screen_signals.csv", signals)
     write_csv(REFERENCE_SCREEN / "reference_probes.csv", reference_evidence)
     write_csv(REFERENCE_SCREEN / "reference_sources.csv", reference_sources)
-    write_csv(REFERENCE_SCREEN / "historical_labels.csv", data["historical_labels"])
+    write_csv(REFERENCE_SCREEN / "candidate_reviews.csv", data["reviews"])
     write_csv(REFERENCE_SCREEN / "sensitivity.csv", sensitivity)
     write_json(REFERENCE_SCREEN / "summary.json", review_summary)
     manifest = {"sources": {name: source(path) for name, path in paths.items()},
                 "script": source(Path(__file__)), "record_count": len(evidence_index),
-                "scope": "Merged target-level results; no historical result overlays"}
+                "scope": "Released target-level evaluation results and the 61 candidate reviews."}
     write_csv(RQ4 / "record_sources.csv", evidence_index)
     write_json(RQ4 / "manifest.json", manifest)
     write_json(REFERENCE_SCREEN / "manifest.json", manifest)

@@ -1,23 +1,19 @@
 # Download code and data
 
-The matching code and data archives are stored in this repository as parts of
-at most 7 MiB, so they can be downloaded through the anonymous mirror.
-The helper downloads, joins and checks them automatically. It uses Python 3.9
-or later and curl; no extra Python packages are needed.
-
-Save [download.py](download.py) and run it, or use these commands:
+The matching code and data archives are stored as parts of at most 7 MiB so they
+can be fetched from the anonymous mirror. The helper needs Python 3.9 or later
+and curl; no extra Python packages are required. It downloads, joins, and checks
+every part and both archives with SHA-256. Interrupted downloads resume from
+verified parts.
 
 ```bash
 curl -fL https://anonymous.4open.science/api/repo/VerusEval-A7E4/file/downloads/download.py -o download.py
 python download.py
 ```
 
-This creates `packages/veruseval-code.tar.gz`, `packages/veruseval-data.tar.gz`
-and `packages/SHA256SUMS`. The two archives total approximately 511 MiB.
-Interrupted downloads resume from verified parts when the command is repeated.
-Every part and both assembled archives are checked with SHA-256.
-
-Extract both archives into a new directory and run the pinned Docker environment:
+This writes `packages/veruseval-code.tar.gz`, `packages/veruseval-data.tar.gz`,
+and `packages/SHA256SUMS`. Archive sizes are listed in `downloads/manifest.json`.
+Extract both into one directory and start the pinned environment:
 
 ```bash
 mkdir veruseval-release
@@ -28,14 +24,12 @@ docker compose run --build --rm veruseval
 docker compose run --rm veruseval python scripts/reproduce.py --rq all --output-dir runs/full
 ```
 
-Use the code and data archives together: their combined manifest verifies the
-exact frozen code and records. The code archive includes this guide and the
-download helper. If both archives are already extracted, start with the Docker
-commands above.
+Then follow [Part 1: reproduce paper results](../docs/reproduction.md) or
+[Part 2: run and evaluate baselines](../baselines/README.md).
 
 From a complete Git checkout, `python downloads/download.py` joins the local
-parts without network access or curl. From an extracted code archive, the same
-command downloads the parts from the anonymous mirror. The parts,
+parts without network access. A standalone copy of the script downloads the
+parts from the anonymous mirror. The
 [download manifest](https://anonymous.4open.science/api/repo/VerusEval-A7E4/file/downloads/manifest.json)
 and [archive checksums](https://anonymous.4open.science/api/repo/VerusEval-A7E4/file/downloads/SHA256SUMS)
-are hosted in the repository and are not embedded in the code archive.
+stay in the repository and are not inside the code archive.

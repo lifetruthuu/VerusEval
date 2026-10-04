@@ -4,6 +4,7 @@ import http.server
 import io
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -107,6 +108,12 @@ class StarVerusTests(unittest.TestCase):
         self.assertEqual(len(results), 1)
         check = subprocess.run([VERUS, str(results[0])], capture_output=True, text=True)
         self.assertEqual(check.returncode, 0, check.stderr)
+        log = next((self.output / 'generation').rglob('*.log')).read_text()
+        selected = re.search(r'\[TASK VERIFIED\].*selected=(.*)', log)
+        self.assertIsNotNone(selected, log)
+        final_path = Path(selected.group(1))
+        self.assertTrue(final_path.is_relative_to(self.output / 'repair'))
+        self.assertEqual(final_path.read_text(), results[0].read_text())
         self.assertEqual(len(self.requests), 3)
         self.assertEqual(len(self.requests[0]['messages']), expected_messages)
         self.assertTrue(any('You are the Judge' in r['messages'][-1]['content']

@@ -23,16 +23,6 @@ from metrics_rebuild.share.text import strip_comments, token_spans
 OUTPUT = ROOT / "data/evidence/contract_variants"
 RESULTS = ROOT / "RQs/RQ3/results"
 SEED = 20261001
-VERSION = "rq3-eight-operators-v5"
-OPERATORS = {
-    "PRE_ADD_SPURIOUS": "pre_strengthening",
-    "PRE_DROP_ONE": "pre_omission",
-    "POST_ADD_UNPROMISED": "post_strengthening",
-    "POST_DROP_ONE": "post_omission",
-    "POST_WEAKEN_REL": "post_omission",
-}
-AUXILIARY = {"PRE_FALSE": "pre_strengthening", "POST_DROP_ALL": "post_omission"}
-DIRECTIONS = tuple(dict.fromkeys(OPERATORS.values()))
 CATEGORIES = ("positive", "negative", "invalid")
 METRICS = dict(zip(CATEGORIES, (
     "correct_io_pass_rate", "wrong_io_reject_rate", "invalid_test_filtering_rate",
@@ -300,4 +290,3 @@ def pair_state(base_metric: dict, mutant_metric: dict) -> str:
     if suite_state(base_metric) != "clear":
         return "base_not_clear"
     return suite_state(mutant_metric)
-

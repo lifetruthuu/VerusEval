@@ -1,4 +1,4 @@
-"""Refresh RQ1 screening and sensitivity evidence directly from merged v5 records."""
+"""Build RQ1 screening and sensitivity results from released evaluation records."""
 from __future__ import annotations
 
 from collections import Counter
@@ -17,7 +17,7 @@ from rq1_paths import RESULTS, SCREENING
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-from RQs.shared import records as migration
+from RQs.shared import records
 
 OUT = SCREENING
 
@@ -26,9 +26,9 @@ def evidence_for(item):
     sample, index, outcome = item
     failures, reasons = [], []
     if any(int(outcome[k + '_' + s]) for k in IO for s in ('failed', 'unresolved')):
-        payload = migration.read_json(ROOT / index['result_path'], index['result_sha256'])
-        for prefix, metric in migration.IO.items():
-            node = migration.generated(payload, metric)
+        payload = records.read_json(ROOT / index['result_path'], index['result_sha256'])
+        for prefix, metric in records.IO.items():
+            node = records.generated(payload, metric)
             bad, unknown = [], []
             for case in node.get('details') or []:
                 evaluation = case.get('evaluation') or {}
@@ -48,9 +48,9 @@ def evidence_for(item):
 
 def main(statistics_only=False):
     OUT.mkdir(parents=True, exist_ok=True)
-    labels = migration.read_csv(migration.DEST / 'rq1_artifact_labels.csv')
-    outcomes = {r['sample_id']: r for r in migration.read_csv(migration.DEST / 'rq1_artifact_outcomes.csv')}
-    index = {r['sample_id']: r for r in migration.read_csv(migration.DEST / 'artifact_index.csv')}
+    labels = records.read_csv(records.DEST / 'rq1_artifact_labels.csv')
+    outcomes = {r['sample_id']: r for r in records.read_csv(records.DEST / 'rq1_artifact_outcomes.csv')}
+    index = {r['sample_id']: r for r in records.read_csv(records.DEST / 'artifact_index.csv')}
     selected = [r for r in labels if r['verification_stage'] in ('accepted', 'proof_failed')]
     with ThreadPoolExecutor(16) as pool:
         evidence = dict(pool.map(evidence_for, [(r['sample_id'], index[r['sample_id']], outcomes[r['sample_id']]) for r in selected]))
@@ -96,7 +96,7 @@ def main(statistics_only=False):
         'venn_unproved_io_flags': dict(Counter(p['flag_mask'] for p in profiles if p['io_failure_evidence'] == 'unproved')),
     }
     encoded_path = RESULTS / 'rq1_acceptance_artifacts.csv'
-    encoded = migration.read_csv(encoded_path)
+    encoded = records.read_csv(encoded_path)
     ill_formed = {s for s, ev in evidence.items() if 'contract_ill_formed' in ev['reasons']}
     sensitivity = {'artifacts': len(ill_formed), 'accepted': sum(r['accepted'] == '1' for r in encoded if r['sample_id'] in ill_formed)}
     for metric in ('Correct-I/O acceptance', 'Wrong-output rejection', 'Invalid-input rejection', 'Equivalence'):
@@ -104,11 +104,11 @@ def main(statistics_only=False):
         sensitivity[metric] = float(tau_b(pair_counts(np.array([r['accepted'] == '1' for r in usable]), np.array([float(r[metric]) for r in usable]))))
     summary['association_without_ill_formed'] = sensitivity
     summary['source_sha256'] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in
-                               (migration.DEST / 'artifact_index.csv', migration.DEST / 'rq1_artifact_outcomes.csv',
-                                migration.DEST / 'rq1_artifact_labels.csv', encoded_path, Path(__file__))}
+                               (records.DEST / 'artifact_index.csv', records.DEST / 'rq1_artifact_outcomes.csv',
+                                records.DEST / 'rq1_artifact_labels.csv', encoded_path, Path(__file__))}
     assert len(joint) + summary['at_least_one_flag'] + incomplete['000'] == len(profiles)
-    migration.write_csv(OUT / 'accepted_profiles.csv', profiles)
-    migration.write_json(OUT / 'summary.json', summary)
+    records.write_csv(OUT / 'accepted_profiles.csv', profiles)
+    records.write_json(OUT / 'summary.json', summary)
     paper.OUTPUT = OUT
     if not statistics_only:
         paper.draw_venn(summary)
