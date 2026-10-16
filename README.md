@@ -23,7 +23,8 @@ check success, and commands for statistics only or an individual RQ.
 
 Use [the evaluation guide](docs/usage.md) to run VerusEval on the released
 programs or your own outputs. `scripts/reevaluate.py` writes fresh per-file JSON
-records with the evaluator's metric details, a sample index, and a run summary.
+records with the evaluator's metric details and a `target_evaluation` summary,
+plus a sample index and a run summary.
 The guide provides Docker and local Python commands, including a pairing check
 and a single-sample run. New evaluation values may differ from the saved paper records.
 

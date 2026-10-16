@@ -112,7 +112,8 @@ are unavailable without judge configuration. Configured calls use your model ser
 Choose a new or empty output directory for each invocation, including dry runs.
 The output contains:
 
-- `per_file/*.json`: the evaluator's metric details, sample identity, and errors.
+- `per_file/*.json`: the evaluator's metric details, a `target_evaluation`
+  summary, sample identity, and errors.
 - `artifact_index.csv`: one row per selected sample, with input paths, the result
   path relative to this run directory, and evaluation status.
   JSON filenames encode the full sample ID.
@@ -122,8 +123,29 @@ The output contains:
 The `metrics` object retains the existing evaluator's outputs, including scores,
 statuses, per-function or per-clause details, I/O case results, and diagnostics
 where provided by each metric. Select the fields relevant to your analysis.
-The downloaded paper records additionally contain merged review results and
-`target_evaluation`; this entry produces fresh evaluator records.
+
+`target_evaluation` summarizes the selected task function using the current
+metric results. It records the target function, verification stage, target
+availability (`analysis_eligible` and `exclusion_reason`), four implication
+directions, and triviality states. `analysis_eligible` means the executable
+target can be resolved in both inputs; it does not require verification to pass.
+It is `null` if target resolution could not finish. Verification stages are
+`accepted`, `proof_failed`, `frontend_failed`, `parse_failed`, or `unknown`.
+This describes whole-file verification; a file can pass while its task target
+is missing, so check target availability separately.
+
+Precondition directions come from the target's whole-contract checks in
+`proportion_at_least_gt`. Postcondition directions aggregate the target's
+`postcondition_clause_reliability_rate` (generated to reference) and
+`postcondition_clause_completeness_rate` (reference to generated). A direction
+is `valid` when all clauses pass, `invalid` when all are decided and at least
+one is rejected, and `unknown` when evidence is incomplete or unresolved.
+Missing target results are `unavailable`. Triviality states are `unfavorable`
+when triviality is detected, `favorable` when ruled out, and `other` when
+unresolved. The summary identifies its source metrics and updates with each
+checkpoint. It adds no verifier runs and leaves the original metrics intact.
+The downloaded paper summaries also incorporate subsequent rechecks and reviews;
+fresh summaries describe this run and can have different values.
 
 A run exits with code 0 and summary status `completed` when all samples finish
 without execution exceptions. Program rejection and unavailable metrics are

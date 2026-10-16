@@ -97,13 +97,16 @@ def discover_jobs(args):
 def run_worker(args):
     from metrics_rebuild.share.io_cases import set_io_suite_dir
     from scripts.evaluation.evaluate import evaluate_single
+    from scripts.evaluation.target_summary import resolve_summary_target, summarize_target
 
     job = json.loads(args.job)
     set_io_suite_dir(args.io_root)
     output = Path(args.result)
+    target = resolve_summary_target(job["generated_path"], job["reference_path"])
 
     def save(result, status="running"):
         write_json(output, {**result, "sample": {key: job[key] for key in ("sample_id", *IDENTITY)},
+                            "target_evaluation": summarize_target(result, target, job["sample_id"]),
                             "evaluation_status": status})
 
     result = evaluate_single(job["generated_path"], job["reference_path"], args.verus_path, progress=save)
@@ -129,6 +132,8 @@ def stop_worker(process):
 
 def finish_failed(job, path, status, error):
     """Retain metrics already saved by the worker's last atomic checkpoint."""
+    from scripts.evaluation.target_summary import summarize_target
+
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -140,6 +145,9 @@ def finish_failed(job, path, status, error):
                    "metrics": {}, "errors": []}
     payload["evaluation_status"] = status
     payload["errors"].append({"metric": "__task__", "error": error})
+    if "target_evaluation" not in payload:
+        payload["target_evaluation"] = summarize_target(
+            payload, {"status": "unavailable", "reason": "evaluation_not_started"}, job["sample_id"])
     write_json(path, payload)
     return payload
 
