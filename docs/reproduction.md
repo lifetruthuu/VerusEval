@@ -13,6 +13,13 @@ docker compose run --rm veruseval python scripts/reproduce.py \
 This rebuilds tables, statistics, and figures from the released evaluation
 records without model API calls. Use a new or empty output directory for each run.
 
+RQ1 reports the input task count separately from the number of programs used in
+its acceptance-association comparison. The analysis input contains 13,659 eligible
+programs across 762 tasks; the comparison uses 7,081 accepted and 1,774 proof-failed
+programs. Programs with parse or frontend failures are excluded from this
+comparison. Individual metrics can use fewer programs when their values are
+unavailable.
+
 For statistics and LaTeX tables only, or a single RQ:
 
 ```bash

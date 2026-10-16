@@ -122,7 +122,8 @@ def write_csv(name: str, rows: list[dict[str, object]]) -> None:
 
 
 def main() -> None:
-    rows = [row for row in read_csv(ARTIFACTS) if row["verification_stage"] in STAGES]
+    input_rows = read_csv(ARTIFACTS)
+    rows = [row for row in input_rows if row["verification_stage"] in STAGES]
     accepted = np.array([row["verification_stage"] == "accepted" for row in rows])
     if EXPECTED_GROUPS is not None:
         assert (accepted.sum(), (~accepted).sum()) == EXPECTED_GROUPS
@@ -172,7 +173,12 @@ def main() -> None:
          **{name: ("" if np.isnan(values[name][index]) else values[name][index]) for name in values}}
         for index, (row, flag) in enumerate(zip(rows, accepted))])
 
-    print(f"{accepted.sum():,} accepted and {(~accepted).sum():,} proof-failed artifacts from {len(task_ids)} tasks")
+    print(f"RQ1 input: {len({row['task_id'] for row in input_rows}):,} tasks, "
+          f"{len(input_rows):,} analysis-eligible artifacts")
+    print(f"Acceptance association: {accepted.sum():,} accepted and {(~accepted).sum():,} "
+          f"proof-failed artifacts ({len(rows):,} total)")
+    print(f"Excluded from this comparison: {len(input_rows) - len(rows):,} artifacts "
+          "outside the accepted/proof_failed stages")
     for row in summary:
         print(f"{row['metric']:<24} n={row['accepted_n']:>5}/{row['proof_failed_n']:<5} "
               f"mean={row['accepted_mean']:.3f}/{row['proof_failed_mean']:.3f} "
