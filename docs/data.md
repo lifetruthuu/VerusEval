@@ -23,6 +23,11 @@ Per-file JSON records contain metric values and states. Failed, unresolved,
 unavailable, and missing-target results remain distinct; empty I/O categories
 have null scores.
 
+`scripts/rebuild_rq1_inputs.py` reconstructs the two `rq1_artifact_*.csv` input
+tables from these JSON records, the sample index, and the target catalog. The
+reproduction command runs this conversion automatically and checks the rebuilt
+tables against the released paper inputs before analysis.
+
 `evidence/reference_review/candidate_reviews.csv` contains the 61 RQ4 candidates,
 both human reviewers' judgments, final labels, and the expert's decisions on
 the four reviewer disagreements. The protocol is in

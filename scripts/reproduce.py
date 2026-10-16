@@ -10,9 +10,23 @@ import subprocess
 import sys
 import time
 
-from validate import compare_results, validate
+from rebuild_rq1_inputs import OUTPUT_NAMES
+from validate import compare_inputs, compare_results, validate
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def prepare_data(work):
+    """Give each run writable RQ1 input tables alongside links to released data."""
+    data = work / 'data'
+    evaluation = data / 'evaluation'
+    evaluation.mkdir(parents=True)
+    for source in (ROOT / 'data').iterdir():
+        if source.name != 'evaluation':
+            (data / source.name).symlink_to(source, target_is_directory=source.is_dir())
+    for source in (ROOT / 'data/evaluation').iterdir():
+        if source.name not in OUTPUT_NAMES:
+            (evaluation / source.name).symlink_to(source, target_is_directory=source.is_dir())
 
 
 def main():
@@ -39,7 +53,7 @@ def main():
     work.mkdir()
     for name in ('scripts', 'metrics_rebuild', 'RQs'):
         shutil.copytree(ROOT / name, work / name, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
-    (work / 'data').symlink_to(ROOT / 'data', target_is_directory=True)
+    prepare_data(work)
     for rq in range(1, 5):
         for name in ('results', 'tables', 'figures', 'figure_captions'):
             (work / f'RQs/RQ{rq}' / name).mkdir(parents=True, exist_ok=True)
@@ -66,6 +80,15 @@ def main():
             save()
             parser.exit(1, log.read_text()[-6000:] + f'\nStage failed; see {log}\n')
         save()
+
+    run('scripts/rebuild_rq1_inputs.py', '--output-dir', 'data/evaluation')
+    try:
+        report['input_tables_compared'] = compare_inputs(work, ROOT)
+    except (ValueError, OSError) as error:
+        report['status'] = 'failed'
+        save()
+        parser.exit(1, f'Input-table comparison failed: {error}\n')
+    save()
 
     stats = ['--statistics-only'] if args.statistics_only else []
     # RQ2 cross-checks RQ1's score encodings; RQ3 checks RQ1's accepted profiles.

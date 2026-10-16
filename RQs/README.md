@@ -10,6 +10,11 @@ Use `--rq 1`, `2`, `3`, or `4` to select one RQ, and `--statistics-only` to skip
 figures. Each run needs a new or empty output directory. RQ2 and RQ3 automatically
 build their required RQ1 results. No model API or Verus execution is needed.
 
+Every run first uses [rebuild_rq1_inputs.py](../scripts/rebuild_rq1_inputs.py) to
+regenerate the RQ1 labels and outcomes from per-file JSON records. These tables
+are written to `work/data/evaluation/` and compared with the released paper
+inputs before the RQ scripts run.
+
 | RQ | Analysis | Main scripts | Released inputs |
 | --- | --- | --- | --- |
 | RQ1 | Metric association with verifier acceptance; checks on accepted programs | [refresh_rq1_paper.py](RQ1/scripts/refresh_rq1_paper.py), [refresh_rq1_screening.py](RQ1/scripts/refresh_rq1_screening.py) | `data/evaluation/` |

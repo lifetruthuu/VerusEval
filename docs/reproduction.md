@@ -13,6 +13,12 @@ docker compose run --rm veruseval python scripts/reproduce.py \
 This rebuilds tables, statistics, and figures from the released evaluation
 records without model API calls. Use a new or empty output directory for each run.
 
+Each run first reads `per_file/*.json` through `data/evaluation/artifact_index.csv`
+and uses `target_functions.csv` for target metadata. It regenerates
+`rq1_artifact_labels.csv` and `rq1_artifact_outcomes.csv` under
+`runs/full/work/data/evaluation/`, checks them against the released paper inputs,
+and uses these regenerated tables for the analyses.
+
 RQ1 reports the input task count separately from the number of programs used in
 its acceptance-association comparison. The analysis input contains 13,659 eligible
 programs across 762 tasks; the comparison uses 7,081 accepted and 1,774 proof-failed
@@ -35,10 +41,28 @@ docker compose run --rm veruseval python scripts/reproduce.py \
 RQ2 and RQ3 build their required RQ1 intermediate results automatically.
 The [RQ script index](../RQs/README.md) maps each analysis to its code and inputs.
 
+To rebuild just the two intermediate CSV files:
+
+```bash
+docker compose run --rm veruseval python scripts/rebuild_rq1_inputs.py \
+  --output-dir runs/rq1-inputs
+```
+
+With the [local Python environment](installation.md#local-environment),
+run the same command without the Docker prefix:
+
+```bash
+python scripts/rebuild_rq1_inputs.py --output-dir runs/rq1-inputs
+```
+
+The converter reads the JSON records and metadata directly; existing labels and
+outcomes tables are used only by the reproduction runner for comparison.
+
 ## Outputs and validation
 
 A successful run exits with code 0 and sets `"status": "passed"` in
-`runs/full/reproduction.json`. This file lists stage logs and the numerical
+`runs/full/reproduction.json`. This file lists stage logs, the two intermediate
+tables compared against the released paper inputs, and the numerical result
 tables compared against `data/evidence/paper_results/`, with absolute tolerance
 `1e-12`.
 
@@ -60,7 +84,7 @@ docker compose run --rm veruseval python scripts/validate.py --results runs/full
 
 For a single-RQ run, use its output path and matching selector, for example
 `--results runs/rq2/work --rq 2`. Keep the extracted data available:
-`work/data` links to it.
+`work/data` contains the rebuilt input tables and links to the remaining data.
 
 For missing files or hash mismatches, extract matching archives into a new
 directory. For a failed stage, open its log listed in `reproduction.json`.

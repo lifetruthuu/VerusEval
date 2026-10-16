@@ -122,16 +122,29 @@ def equal_cell(left, right):
         return False
 
 
+def compare_csv(current_path, reference_path):
+    current, previous = rows(current_path), rows(reference_path)
+    require(len(current) == len(previous), f'Changed row count: {current_path}')
+    for i, (a, b) in enumerate(zip(current, previous)):
+        require(a.keys() == b.keys(), f'Changed columns: {current_path}')
+        for field in a:
+            require(equal_cell(a[field], b[field]), f'Changed result: {current_path}, row {i}, {field}')
+
+
+def compare_inputs(work, source):
+    compared = []
+    for name in ('rq1_artifact_labels.csv', 'rq1_artifact_outcomes.csv'):
+        relative = Path('data/evaluation') / name
+        compare_csv(work / relative, source / relative)
+        compared.append(str(relative))
+    return compared
+
+
 def compare_results(work, frozen, selected):
     compared = []
     for rq in sorted(selected):
         for name in TABLES[rq]:
-            current, previous = rows(work / 'RQs' / name), rows(frozen / name)
-            require(len(current) == len(previous), f'Changed row count: {name}')
-            for i, (a, b) in enumerate(zip(current, previous)):
-                require(a.keys() == b.keys(), f'Changed columns: {name}')
-                for field in a:
-                    require(equal_cell(a[field], b[field]), f'Changed result: {name}, row {i}, {field}')
+            compare_csv(work / 'RQs' / name, frozen / name)
             compared.append(name)
     return compared
 
@@ -146,6 +159,7 @@ def main():
         result = validate(all_files=args.all_files)
         if args.results:
             selected = set('1234') if args.rq == 'all' else {args.rq}
+            result['input_tables_compared'] = compare_inputs(args.results, ROOT)
             result['numerical_tables_compared'] = compare_results(args.results, ROOT / 'data/evidence/paper_results', selected)
     except (OSError, ValueError, KeyError) as error:
         parser.exit(1, f'Validation failed: {error}\n')
