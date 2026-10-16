@@ -30,4 +30,5 @@ parsing helpers.
 
 See [Part 1](../docs/reproduction.md) for Docker commands, output filenames, and
 validation. The data archive's `data/evidence/README.md` describes the supporting
-inputs. For new generation and evaluation, use [Part 2](../baselines/README.md).
+inputs. For new evaluation records, use [Part 2](../docs/usage.md). For new
+programs, use [Part 3](../baselines/README.md).
