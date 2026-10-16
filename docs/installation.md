@@ -27,7 +27,40 @@ For an interactive shell, run `docker compose run --rm veruseval bash`.
 On Linux, add `--user "$(id -u):$(id -g)"` after `run --rm` to give outputs
 your host ownership.
 
-For manual setup, start with [the Python environment](../environment.yml) and
-[the R environment](../environment-r.yml), then install the matching Verus, Rust,
-and remaining dependencies listed in the Dockerfile. Use `--rscript` to select
-your R executable when reproducing figures.
+## Local environment
+
+For local evaluation on Linux x86-64, install Conda and rustup, extract the
+matching code and data archives, and run from the project root:
+
+```bash
+conda env create -f environment.yml
+conda activate veruseval
+rustup toolchain install 1.88.0 --profile minimal
+rustup component add --toolchain 1.88.0 rustc-dev llvm-tools rustfmt
+export RUSTUP_TOOLCHAIN=1.88.0
+```
+
+This creates a Python 3.11 environment with the dependencies in
+`requirements.txt`. Download and extract the
+[Verus 0.2025.09.25.04e8687 Linux release](https://github.com/verus-lang/verus/releases/download/release/0.2025.09.25.04e8687/verus-0.2025.09.25.04e8687-x86-linux.zip),
+keeping the executable and its bundled files together. Replace the placeholder
+below with its absolute path:
+
+```bash
+export VERUS_PATH=/absolute/path/to/verus-x86-linux/verus
+export PATH="$(dirname "$VERUS_PATH"):$PATH"
+"$VERUS_PATH" --version
+rustc --version
+"$VERUS_PATH" examples/identity.rs
+```
+
+The versions should be Verus `0.2025.09.25.04e8687` and Rust `1.88.0`; the example
+should report `0 errors`. Keep these exports in each terminal used for
+evaluation, then follow the [local Python commands](usage.md#local-python).
+
+For baseline generation, install the additional baseline dependencies and build
+Lynette as shown in the [Dockerfile](../Dockerfile). For paper figures, also
+prepare [R](../environment-r.yml), the versions in the
+[R lockfile](../docker/r-packages.lock.json), and the TeX and Chromium dependencies
+listed in the Dockerfile. Use `--rscript` to select your R executable when
+reproducing figures.
