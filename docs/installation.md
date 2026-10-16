@@ -18,8 +18,8 @@ commands are recorded in the [Dockerfile](../Dockerfile),
 [Python lockfile](../docker/requirements.lock), and
 [R lockfile](../docker/r-packages.lock.json).
 
-Continue with [paper result reproduction](reproduction.md) or
-[baseline generation and evaluation](../baselines/README.md). Paper result
+Continue with [paper result reproduction](reproduction.md),
+[program re-evaluation](usage.md), or [baseline generation](../baselines/README.md). Paper result
 reproduction works offline after setup; model calls require API credentials
 and network access.
 

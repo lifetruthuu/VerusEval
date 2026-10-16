@@ -1,8 +1,9 @@
-# Part 2: Run and evaluate the baselines
+# Part 3: Generate programs with the baselines
 
 Use this guide to generate new programs with AutoVerus, VeruSAGE, StarVerus,
 and AlphaVerus, then evaluate them with VerusEval. To check the paper's released
-results first, follow [Part 1](../docs/reproduction.md).
+results first, follow [Part 1](../docs/reproduction.md). To re-evaluate released
+programs or new outputs, use [Part 2](../docs/usage.md).
 
 ## Prepare the dataset and model service
 
@@ -140,14 +141,15 @@ differ from the evaluation references for some tasks.
 For one generated file, choose its task ID and corresponding reference:
 
 ```bash
-docker compose run --rm veruseval python scripts/evaluation/evaluate.py file \
+docker compose run --rm veruseval python scripts/reevaluate.py file \
   -g runs/autoverus/autoverus/gpt-4o/zero-shot/results/VeriCoding/VeriCoding_VV0178_vericoded.rs \
   -r data/references/VeriCoding/VeriCoding_VV0178_vericoded.rs \
+  --workflow AutoVerus --model gpt-4o --shot zero-shot --io-root data/io \
   -o runs/evaluation-one --verus-path /opt/verus/verus
 ```
 
-For batch evaluation, first collect one final file per task into a flat directory
-and copy its reference under the same filename. The following command handles
+For batch evaluation, first write a manifest selecting one final file per task.
+The following command handles
 all four output layouts. Set `baseline` and `run` to the configuration being
 evaluated, and choose a new `pairs` directory. It includes verified and unverified
 final programs, rejects failed tasks and duplicates, and omits intermediate copies.
@@ -158,7 +160,6 @@ import csv
 import json
 from pathlib import Path
 import re
-import shutil
 
 baseline = "autoverus"
 run = Path("runs/autoverus/autoverus/gpt-4o/zero-shot")
@@ -196,33 +197,34 @@ else:
 if not selected:
     raise ValueError("No final outputs found; check baseline and run")
 pairs.mkdir(parents=True, exist_ok=False)
-for kind in ("generated", "references"):
-    (pairs / kind).mkdir()
-for task, source in sorted(selected.items()):
-    shutil.copyfile(source, pairs / "generated" / f"{task}.rs")
-    shutil.copyfile(references[task], pairs / "references" / f"{task}.rs")
-print(f"Prepared {len(selected)} task pairs in {pairs}")
+workflow = {"autoverus": "AutoVerus", "alphaverus": "AlphaVerus",
+            "verusage": "VeruSAGE", "starverus": "StarVerus"}[baseline]
+with (pairs / "programs.csv").open("w", newline="") as stream:
+    writer = csv.DictWriter(stream, fieldnames=["workflow", "model", "shot", "task_id", "generated_path"])
+    writer.writeheader()
+    for task, source in sorted(selected.items()):
+        writer.writerow({"workflow": workflow, "model": run.parent.name, "shot": run.name,
+                         "task_id": task, "generated_path": str(source)})
+print(f"Prepared {len(selected)} samples in {pairs / 'programs.csv'}")
 PY
 
-docker compose run --rm veruseval python scripts/evaluation/evaluate.py dir \
-  -g runs/evaluation-inputs/autoverus-gpt4o-zero/generated \
-  -r runs/evaluation-inputs/autoverus-gpt4o-zero/references \
+docker compose run --rm veruseval python scripts/reevaluate.py dataset \
+  --manifest runs/evaluation-inputs/autoverus-gpt4o-zero/programs.csv \
   -o runs/evaluation-autoverus --workers 4 --verus-path /opt/verus/verus
 ```
 
-The directory evaluator matches only top-level files with identical names.
+The evaluator resolves task IDs to the catalog references and their offline I/O suites.
 Check the prepared count against the selected tasks in `generation.json` and
-inspect any missing-task warnings. Run preparation after generation has finished.
+resolve missing-task errors. Run preparation after generation has finished.
 Run evaluation in the same Docker workspace and output location used for generation.
 
-To use the released offline I/O suites, copy `config.example.yaml` to `config.yaml`,
-set `verus_path: /opt/verus/verus`, and retain `io_suite_dir: data/io`. For LLM intent
-judgments, also set `VERUSEVAL_LLM_API_KEY`, `VERUSEVAL_LLM_BASE_URL`, and
+Dataset evaluation uses the released offline I/O suites in `data/io` by default.
+For LLM intent judgments, set `VERUSEVAL_LLM_API_KEY`, `VERUSEVAL_LLM_BASE_URL`, and
 `VERUSEVAL_LLM_MODEL_NAME` on the host and pass each with `-e` before `veruseval`
 in the evaluation command. These are separate from generation credentials.
-Without a configured judge, the LLM metric is unavailable.
+Judgments requiring a model are unavailable without judge configuration.
 
-Inspect `summary.json`, `scores.csv`, `statistics.json`, and `per_file/*.json` in
+Inspect `summary.json`, `artifact_index.csv`, and `per_file/*.json` in
 the evaluation output. Metric states distinguish passed, failed, unresolved, and
 unavailable results. A missing I/O category or unavailable judgment is not a
 successful check. New evaluations can differ from the released records.

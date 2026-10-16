@@ -90,6 +90,7 @@ For missing files or hash mismatches, extract matching archives into a new
 directory. For a failed stage, open its log listed in `reproduction.json`.
 Numerical comparison errors identify the CSV, row, and field.
 
-To generate and evaluate new programs, continue with
-[Part 2: run and evaluate baselines](../baselines/README.md).
+To generate fresh evaluation records, continue with
+[Part 2: re-evaluate programs](usage.md). To generate new programs, follow
+[Part 3: run baselines](../baselines/README.md).
 The optional [metric gallery](../gallery/README.md) has its own regeneration command.

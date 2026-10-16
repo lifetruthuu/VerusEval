@@ -31,7 +31,7 @@ import time
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -129,7 +129,11 @@ def _load_verus_path_from_config() -> Optional[str]:
     return None
 
 
-def evaluate_single(gen_path: str, ref_path: str, verus_bin: Optional[str] = None) -> Dict[str, Any]:
+def evaluate_single(
+    gen_path: str, ref_path: str, verus_bin: Optional[str] = None, *,
+    progress: Optional[Callable[[dict], None]] = None,
+) -> Dict[str, Any]:
+    """Compute the existing metrics, optionally checkpointing after each metric."""
     import metrics_rebuild as metrics
     if verus_bin:
         metrics.set_verus_binary(verus_bin)
@@ -141,6 +145,9 @@ def evaluate_single(gen_path: str, ref_path: str, verus_bin: Optional[str] = Non
         "metrics": {},
         "errors": [],
     }
+
+    if progress is not None:
+        progress(result)
 
     for metric_fn in metrics.METRIC_FUNCTIONS:
         name = metric_fn.__name__.replace("metric_", "")
@@ -158,6 +165,8 @@ def evaluate_single(gen_path: str, ref_path: str, verus_bin: Optional[str] = Non
                 "_elapsed_seconds": 0,
             }
             result["errors"].append({"metric": name, "error": f"{type(exc).__name__}: {exc}"})
+        if progress is not None:
+            progress(result)
 
     add_derived_rule_metrics(result)
     return result

@@ -39,5 +39,6 @@ Check all released files from the project root:
 docker compose run --rm veruseval python scripts/validate.py --all-files
 ```
 
-See [Part 1](reproduction.md) for result reproduction and
-[Part 2](../baselines/README.md) for generating and evaluating programs.
+See [Part 1](reproduction.md) for result reproduction,
+[Part 2](usage.md) for generating new evaluation records, and
+[Part 3](../baselines/README.md) for generating programs with baselines.

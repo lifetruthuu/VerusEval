@@ -174760,6 +174760,7 @@
     "scripts/package.py",
     "scripts/plot_gallery.py",
     "scripts/rebuild_rq1_inputs.py",
+    "scripts/reevaluate.py",
     "scripts/reporting/__init__.py",
     "scripts/reporting/metric_overview.py",
     "scripts/reproduce.py",

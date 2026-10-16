@@ -19,7 +19,15 @@ records and checks numerical results against the released expected tables.
 It needs no model API credentials. The guide lists the output files, how to
 check success, and commands for statistics only or an individual RQ.
 
-## 2. Run and evaluate the baselines
+## 2. Re-evaluate programs and generate per-file records
+
+Use [the evaluation guide](docs/usage.md) to run VerusEval on the released
+programs or your own outputs. `scripts/reevaluate.py` writes fresh per-file JSON
+records with the evaluator's metric details, a sample index, and a run summary.
+The guide provides Docker and local Python commands, including a pairing check
+and a single-sample run. New evaluation values may differ from the saved paper records.
+
+## 3. Generate programs with the baselines
 
 Continue with [the baseline guide](baselines/README.md) to run AutoVerus,
 VeruSAGE, StarVerus, and AlphaVerus on the dataset. It provides model and API

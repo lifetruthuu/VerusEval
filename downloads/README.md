@@ -25,7 +25,8 @@ docker compose run --rm veruseval python scripts/reproduce.py --rq all --output-
 ```
 
 Then follow [Part 1: reproduce paper results](../docs/reproduction.md) or
-[Part 2: run and evaluate baselines](../baselines/README.md).
+[Part 2: re-evaluate programs](../docs/usage.md), or
+[Part 3: generate programs with baselines](../baselines/README.md).
 
 From a complete Git checkout, `python downloads/download.py` joins the local
 parts without network access. A standalone copy of the script downloads the
