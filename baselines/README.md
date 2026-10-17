@@ -1,24 +1,21 @@
 # Part 3: Generate programs with the baselines
 
-Use this guide to generate new programs with AutoVerus, VeruSAGE, StarVerus,
-and AlphaVerus, then evaluate them with VerusEval. To check the paper's released
-results first, follow [Part 1](../docs/reproduction.md). To re-evaluate released
-programs or new outputs, use [Part 2](../docs/usage.md).
+Use this guide to generate programs with AutoVerus, VeruSAGE, StarVerus, and
+AlphaVerus, then evaluate them with VerusEval. To check the paper's released
+results, follow [Part 1](../docs/reproduction.md). To re-evaluate released
+programs or new outputs, follow [Part 2](../docs/usage.md).
 
-## Prepare the dataset and model service
+## Prepare
 
 Extract the matching [code and data archives](../downloads/README.md) into one
-directory and prepare the [Docker environment](../docs/installation.md).
-Run commands from that directory. Docker includes Verus `0.2025.09.25.04e8687`,
-Rust `1.88.0`, and the baseline dependencies.
+directory and set up the [Docker environment](../docs/installation.md). Run all
+commands from that directory.
 
-Each configuration processes 762 unannotated programs under
-`data/generation/X_code/<benchmark>/<task_id>.rs`. Few-shot generation uses five
-ordered examples from `data/generation/knn_similar.json`, with inputs from
-`X_code/` and annotated examples from `Y/`. Zero-shot generation uses no examples.
-The output is a complete program with contracts and proof annotations.
+Each configuration generates programs for the 762 unannotated tasks in
+`data/generation/X_code/`. Few-shot runs add five examples from
+`data/generation/`; zero-shot runs add none.
 
-First check all 18 configurations without model calls:
+Check all 18 configurations without calling a model:
 
 ```bash
 docker compose run --rm veruseval python scripts/generation/run_dataset.py \
@@ -26,48 +23,27 @@ docker compose run --rm veruseval python scripts/generation/run_dataset.py \
 ```
 
 A successful check writes `"status": "checked"` to
-`runs/generation-check/generation.json`. It still requires the dataset and pinned
-Verus. Choose a different output directory for the real run.
+`runs/generation-check/generation.json`. Use a new output directory for the real run.
 
-For generation, export credentials and the endpoint of your OpenAI-compatible
-service on the host, then pass them to Docker:
+Set the API key and endpoint on the host:
 
 ```bash
 export OPENAI_API_KEY='YOUR_API_KEY'
 export OPENAI_BASE_URL='https://your-provider.example/v1'
 ```
 
-Replace the placeholders with your provider's values. The API key remains in the
-environment. In [generation.json](generation.json), `api_key_env` names an
-environment variable; put the key in that variable, never in the JSON field.
-For separate providers, use the model-specific environment variables in that
-file and pass each into Docker with `-e VARIABLE`. The shared fallbacks are
-`BASELINE_API_KEY` / `OPENAI_API_KEY` and `OPENAI_BASE_URL`.
+Keys stay in environment variables and never go into JSON files.
+[generation.json](generation.json) names the variables each model uses. Pass
+them into Docker with `-e VARIABLE`.
 
-## Configurations and commands
+## Run generation
 
-[generation.json](generation.json) defines the 18 workflow/model/shot combinations.
-`--model` selects a dataset label; `--api-model` selects a provider's actual model
-ID and requires `--model`. `--base-url` overrides the endpoint. These overrides
-are recorded in the output manifest.
+[generation.json](generation.json) defines the 18 workflow, model, and shot
+combinations, including models, endpoints, and budgets. To change settings, copy
+the file under `runs/`, edit the copy, and pass it with `--config`.
 
-| Tool | Model labels | Shots | Generation and repair settings |
-| --- | --- | --- | --- |
-| AutoVerus | `gpt-4o` | zero / few | 5 candidates per inference attempt; up to 5 repair rounds; 32,000 token limit |
-| VeruSAGE | `deepseek-chat`, `qwen-coder` | zero / few | 1 initial candidate; up to 5 repair rounds; 20,000 token limit |
-| StarVerus | `deepseek-chat`, `deepseek-reasoner`, `gpt-4o`, `llama`, `qwen-coder` | zero / few | 5 initial candidates; 3 alignment and 3 repair rounds; actor width 3; one rewrite with 3 extra rounds |
-| AlphaVerus | `llama` | zero / few | 1 initial candidate; 1,024 initial response tokens; repair width 3 and depth 3 |
-
-The generation temperature is 1.0; StarVerus repair uses 0.3.
-`arguments` in the configuration are passed to launchers, and `fixed_settings`
-documents implementation constants. To adjust budgets, copy the configuration
-to a file under `runs/`, edit its `arguments`, and pass `--config`. For example,
-`workflows.alphaverus.arguments.alpha-max-tokens` controls the initial response
-budget, including reasoning tokens charged by the provider. An empty or
-truncated AlphaVerus response fails explicitly.
-
-Run one tool and prompting mode using the corresponding command below.
-Configure an endpoint that serves the selected model before each invocation.
+Before each run, make sure the endpoint serves the selected model. Run one
+baseline with one model:
 
 ```bash
 # AutoVerus
@@ -91,54 +67,46 @@ docker compose run --rm -e OPENAI_API_KEY -e OPENAI_BASE_URL veruseval \
   --shot zero-shot --output-root runs/alphaverus
 ```
 
-Use `--shot few-shot` for the five-example setting; omit `--shot` to run both.
-Add `--benchmark HumanEval-Verus` to restrict the task set, and `--workers 4`
-to run four tasks concurrently. Omitting baseline/model/shot selectors runs all
-18 configurations and requires access to every configured model. Always use a
-fresh output root. Generation makes paid model requests according to your provider.
+Use `--shot few-shot` for the few-shot setting, or omit `--shot` to run both.
+Use `--benchmark HumanEval-Verus` to limit the tasks, and `--workers 4` to run
+four tasks at once. Omitting `--baseline`, `--model`, and `--shot` runs all 18
+configurations and requires access to every model. Always use a new output root.
+Generation sends paid requests to your provider.
 
-For a service check using a different model, keep the dataset label and override
-the provider model and endpoint, for example:
+To test a different provider model, keep the dataset label and override the
+model ID and endpoint:
 
 ```bash
 docker compose run --rm -e OPENAI_API_KEY veruseval \
   python scripts/generation/run_dataset.py --baseline verusage --model deepseek-chat \
-  --api-model deepseek-flash --base-url https://api.deepseek.com/v1 \
-  --shot zero-shot --benchmark HumanEval-Verus --output-root runs/deepseek-check
+  --api-model YOUR_MODEL_ID --base-url https://your-provider.example/v1 \
+  --shot zero-shot --benchmark HumanEval-Verus --output-root runs/provider-check
 ```
 
-This example runs the entire HumanEval-Verus subset. For a single-task check,
-the AutoVerus/AlphaVerus and VeruSAGE launchers linked below accept `--task-id`
-and `--limit`; StarVerus's benchmark entry accepts a `--source_bench_dir`
-containing the selected input file, with `--x_dir`, `--y_dir`, and
-`--knn_json_path` still pointing to the complete dataset. A service check with
-an alternative model is a new test run, not an exact regeneration of paper outputs.
+This runs the whole HumanEval-Verus subset. Output from a different model is a
+new test run, not a reproduction of the paper's outputs.
 
-## Locate outputs and source code
+## Find outputs
 
-At the output root, `generation.json` records actual models, resolved commands,
-parameters and exit status; `inputs.json` records input/example hashes; `logs/`
-contains launcher logs. Check the per-task results as well: a completed pipeline
-may retain an unverified program. Verification alone does not establish that
-the target function was preserved or that its contract is correct.
+Each configuration writes to `<output-root>/<baseline>/<model>/<shot>/`, which
+contains `generation.json` (resolved commands, parameters, and exit status),
+`inputs.json` (input hashes), and `logs/`.
 
-Paths in this table are relative to each configuration directory,
-`<output-root>/<baseline>/<model>/<shot>/`.
+Final programs are in `results/` for AutoVerus and AlphaVerus, under `verusage/`
+for VeruSAGE, and at the `selected=` path in the StarVerus logs.
 
-| Tool | Final files and task records | Code entry points |
-| --- | --- | --- |
-| AutoVerus | `results/<benchmark>/<task_id>.rs`; `tasks/<benchmark>/<task_id>/state.json` | [launcher](../scripts/generation/run_spec_baselines.py), [generation and prompts](verus-proof-synthesis/autoverus/generation.py), [repair](verus-proof-synthesis/autoverus/refinement.py) |
-| VeruSAGE | `<shot>/<model>/<verified-or-unverified>/verusage/*.rs`; `.completion_work/<shot>/<model>/<task_id>/state.json`; `completion_manifest.csv` | [launcher](../scripts/generation/run_verusage_completion.py), [specification prompts](verus-proof-synthesis/verusage/spec_generation.py), [agent entry](verus-proof-synthesis/verusage/main.py) |
-| StarVerus | Final `selected=` path in `generation/**/*.log`; successful proofs also have `repair/**/correct.rs` | [launcher](../scripts/generation/run_starverus.py), [benchmark entry](starverus/workflows/benchmark/run.py), [prompt](starverus/workflows/benchmark/prompt/system_prompt.txt), [repair pipeline](starverus/workflows/benchmark/pipeline/pipeline.py) |
-| AlphaVerus | `results/<benchmark>/<task_id>.rs`; `tasks/<benchmark>/<task_id>/state.json` | [launcher](../scripts/generation/run_spec_baselines.py), [generation and prompts](alphaverus/inference/solve.py), [tree repair](alphaverus/inference/rebase.py) |
+A completed pipeline can still keep an unverified program. Verification alone
+does not show that the target function was preserved or that its contract is
+correct, so check the per-task records as well.
 
-## Evaluate newly generated programs
+## Evaluate new programs
 
-Use `data/evaluation/target_functions.csv` to map task IDs to the evaluation
-references in `data/references/`. Generation examples in `data/generation/Y/`
-differ from the evaluation references for some tasks.
+[target_functions.csv](../data/evaluation/target_functions.csv) maps task IDs to
+the references in `data/references/`. Generation examples in `data/generation/Y/`
+differ from the evaluation references for some tasks, so always evaluate against
+the catalog.
 
-For one generated file, choose its task ID and corresponding reference:
+To evaluate one generated file, give its task ID's reference:
 
 ```bash
 docker compose run --rm veruseval python scripts/reevaluate.py file \
@@ -148,11 +116,11 @@ docker compose run --rm veruseval python scripts/reevaluate.py file \
   -o runs/evaluation-one --verus-path /opt/verus/verus
 ```
 
-For batch evaluation, first write a manifest selecting one final file per task.
-The following command handles
-all four output layouts. Set `baseline` and `run` to the configuration being
-evaluated, and choose a new `pairs` directory. It includes verified and unverified
-final programs, rejects failed tasks and duplicates, and omits intermediate copies.
+For a batch, first write a manifest with one final file per task. Set `baseline`
+and `run` in the script, and choose a new `pairs` directory. The script includes
+verified and unverified final programs, skips intermediate copies, and stops on
+failed tasks or duplicates. Run it after generation has finished, in the same
+Docker workspace used for generation.
 
 ```bash
 docker compose run --rm -T veruseval python - <<'PY'
@@ -213,33 +181,26 @@ docker compose run --rm veruseval python scripts/reevaluate.py dataset \
   -o runs/evaluation-autoverus --workers 4 --verus-path /opt/verus/verus
 ```
 
-The evaluator resolves task IDs to the catalog references and their offline I/O suites.
-Check the prepared count against the selected tasks in `generation.json` and
-resolve missing-task errors. Run preparation after generation has finished.
-Run evaluation in the same Docker workspace and output location used for generation.
+Check the prepared count against the selected tasks in `generation.json`, and
+resolve any missing-task errors before evaluating.
 
 Dataset evaluation uses the released offline I/O suites in `data/io` by default.
-For LLM intent judgments, set `VERUSEVAL_LLM_API_KEY`, `VERUSEVAL_LLM_BASE_URL`, and
-`VERUSEVAL_LLM_MODEL_NAME` on the host and pass each with `-e` before `veruseval`
-in the evaluation command. These are separate from generation credentials.
-Judgments requiring a model are unavailable without judge configuration.
+LLM intent judgments need `VERUSEVAL_LLM_API_KEY`, `VERUSEVAL_LLM_BASE_URL`, and
+`VERUSEVAL_LLM_MODEL_NAME`, passed on the host with `-e` before `veruseval`. These
+are separate from the generation credentials. Without them, judgments that need
+a model are unavailable.
 
-Inspect `summary.json`, `artifact_index.csv`, and `per_file/*.json` in
-the evaluation output. Metric states distinguish passed, failed, unresolved, and
-unavailable results. A missing I/O category or unavailable judgment is not a
-successful check. New evaluations can differ from the released records.
-See [evaluation options](../docs/usage.md) and [data details](../docs/data.md).
+Check `summary.json`, `artifact_index.csv`, and `per_file/*.json` in the
+evaluation output. "Unresolved" and "unavailable" are not passes, and a missing
+I/O category is not a successful check. New evaluations can differ from the
+released records. See [evaluation options](../docs/usage.md) and
+[data details](../docs/data.md).
 
-## Model configuration and sources
+## Sources
 
-The executable settings are defined in [generation.json](generation.json).
-AlphaVerus uses Llama 4 Maverick by default.
-VeruSAGE's `deepseek-chat` label defaults to `deepseek-v4-flash` on DashScope;
-the general `deepseek-chat` mapping uses `deepseek-flash` on DeepSeek. Override both
-`--api-model` and `--base-url` when using another provider. Model aliases and
-stochastic generation can change outputs.
+Model settings are in [generation.json](generation.json).
 
 Upstream: [AutoVerus and VeruSAGE](https://github.com/microsoft/verus-proof-synthesis),
 [StarVerus](https://github.com/Je5s1e/KDD26-ADS-StarVerus), and
-[AlphaVerus](https://github.com/cmu-l3/alphaverus).
-See [third-party notices](../THIRD_PARTY.md) for licenses and adaptations.
+[AlphaVerus](https://github.com/cmu-l3/alphaverus). See
+[third-party notices](../THIRD_PARTY.md) for licenses and adaptations.
